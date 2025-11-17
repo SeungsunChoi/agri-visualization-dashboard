@@ -7,7 +7,7 @@ st.set_page_config(page_title="품목 선택", layout="wide")
 # ==============================
 # 📌 ZIP 파일에서 데이터 불러오기
 # ==============================
-ZIP_PATH = "data/agri_data.zip"
+ZIP_PATH = "data/농수축산_분석가능품목_only_v2_with_kgprice.zip"
 CSV_NAME = "농수축산_분석가능품목_only_v2_with_kgprice.csv"
 
 @st.cache_data
@@ -114,4 +114,5 @@ st.markdown("<br>", unsafe_allow_html=True)
 if st.session_state["selected_item"]:
     if st.button("👉 다음 단계로 이동", type="primary"):
         st.switch_page("pages/02_세부선택.py")
+
 
