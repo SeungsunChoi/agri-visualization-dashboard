@@ -165,26 +165,32 @@ colA, colB = st.columns(2)
 # --------------------------
 # 📈 급등·급락 시계열
 # --------------------------
+# --------------------------
+# 📈 급등·급락 시계열
+# --------------------------
 with colA:
     st.markdown("### 📈 급등·급락 시계열")
 
     base = alt.Chart(sub_wholesale).mark_line(color="black").encode(
-        x="가격등록일자:T",
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),   # ✅ 수정됨
         y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)")
     )
 
     dots_up = alt.Chart(spike_up).mark_circle(size=60, color="red").encode(
-        x="가격등록일자:T", y=f"{PRICE_COL}:Q"
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),  # ✅ 수정됨
+        y=f"{PRICE_COL}:Q"
     )
 
     dots_down = alt.Chart(spike_down).mark_circle(size=60, color="blue").encode(
-        x="가격등록일자:T", y=f"{PRICE_COL}:Q"
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),  # ✅ 수정됨
+        y=f"{PRICE_COL}:Q"
     )
 
     st.altair_chart(
         alt.layer(base, dots_up, dots_down).properties(height=340),
         use_container_width=True
     )
+
 
 # --------------------------
 # 📊 월별 급등·급락
