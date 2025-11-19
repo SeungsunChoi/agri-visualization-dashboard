@@ -68,7 +68,9 @@ st.markdown('<h1 class="main-title">📍 지역·시장별 가격 비교</h1>', 
 # ======================================================
 # 0. 데이터 로드
 # ======================================================
-df = pd.read_csv("data/농수축산_분석가능품목_only_v2_with_kgprice.parquet")
+DATA_PATH = "data/농수축산_분석가능품목_only_v2_with_kgprice.parquet"
+df = pd.read_parquet(DATA_PATH)
+
 df["가격등록일자"] = pd.to_datetime(df["가격등록일자"], errors="coerce")
 df = df.dropna(subset=["가격등록일자"])
 df = df[df["조사구분명"].isin(["도매", "소매"])]
