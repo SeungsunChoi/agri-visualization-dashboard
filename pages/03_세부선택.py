@@ -23,7 +23,7 @@ PRICE_COL = "kg당가격"
 # ====================================================
 # 0. 데이터 불러오기
 # ====================================================
-df = pd.read_parquet("data/농수축산_분석가능품목_only_v2_with_kgprice.parquet")
+df = pd.read_csv("data/농수축산_분석가능품목_only_v2_with_kgprice.parquet")
 df["가격등록일자"] = pd.to_datetime(df["가격등록일자"], errors="coerce")
 df = df.dropna(subset=["가격등록일자"])
 
