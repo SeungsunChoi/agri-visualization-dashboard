@@ -219,13 +219,14 @@ avg_retail = margin_df["소매"].mean()
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    st.markdown(f"✔ 선택 기간 평균 마진: **{avg_margin:,.0f}원/kg**")
+    st.markdown(f"✔ 평균 마진: **{avg_margin:,.0f}원/kg**")
 
 with c2:
     st.markdown(f"✔ 평균 도매가격: **{avg_wholesale:,.0f}원/kg**")
 
 with c3:
     st.markdown(f"✔ 평균 소매가격: **{avg_retail:,.0f}원/kg**")
+
 
 
 
