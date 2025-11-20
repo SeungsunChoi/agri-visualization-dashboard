@@ -142,7 +142,7 @@ with colA:
             color=alt.Color("조사구분명:N", title="조사구분"),
             tooltip=["가격등록일자:T", "조사구분명:N", alt.Tooltip(f"{PRICE_COL}:Q", title="가격(원/kg)")]
         )
-        .properties(height=300)
+        .properties(height=360)
     )
     st.altair_chart(line_chart, use_container_width=True)
 
@@ -164,7 +164,7 @@ with colB:
             y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
             color="조사구분명:N",
         )
-        .properties(height=300)
+        .properties(height=360)
     )
     st.altair_chart(box_chart, use_container_width=True)
 
@@ -204,7 +204,7 @@ if {"도매", "소매"}.issubset(pivot.columns):
                 alt.Tooltip("마진:Q", title="평균 마진(원/kg)", format=",.0f")
             ],
         )
-        .properties(height=300)
+        .properties(height=360)
     )
     st.altair_chart(margin_bar, use_container_width=True)
 
@@ -226,6 +226,7 @@ with c2:
 
 with c3:
     st.markdown(f"✔ 평균 소매가격: **{avg_retail:,.0f}원/kg**")
+
 
 
 
