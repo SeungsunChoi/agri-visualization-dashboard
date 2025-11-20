@@ -7,75 +7,50 @@ PRICE_COL = "kg당가격"
 st.markdown("""
 <style>
 
- /* ================================================
-      🔥 Streamlit 기본 장식 제거
-  ================================================= */
-div[data-testid="stDecoration"] { display: none !important; }
-hr { display: none !important; }
+ /* ===============================
+      기본 장식 제거
+================================ */
+div[data-testid="stDecoration"] { display:none !important; }
+hr { display:none !important; }
 
- /* ================================================
-      📌 페이지 메인 제목 (h1)
-  ================================================= */
+ /* ===============================
+      메인 제목
+================================ */
 .main-title {
     font-size: 2.1rem !important;
     font-weight: 750 !important;
-    margin-top: 0.3rem !important;
-    margin-bottom: 0.7rem !important;
+    margin-bottom: 0.6rem !important;
 }
 
- /* ================================================
-      📌 섹션 제목 (h2, h3)
-  ================================================= */
-h2 {
-    font-size: 1.45rem !important;
-    font-weight: 650 !important;
-    margin-top: 0.6rem !important;
-    margin-bottom: 0.4rem !important;
-}
+ /* ===============================
+      h2~h4 제목
+================================ */
+h2 { font-size: 1.45rem !important; font-weight: 650 !important; }
+h3 { font-size: 1.25rem !important; font-weight: 600 !important; }
+h4 { font-size: 1.05rem !important; font-weight: 500 !important; }
 
-h3 {
+ /* ===============================
+      🔥 핵심: Streamlit UI 라벨 크기 키우기
+      (slider / selectbox / radio / multiselect 전부 포함)
+================================ */
+div[data-testid="stWidgetLabel"] > label,
+div[data-testid="stSelectboxLabel"] > label,
+div[data-testid="stRadioLabel"] > label,
+div[data-testid="stSliderLabel"] > label,
+div[data-testid="stCheckboxLabel"] > label {
     font-size: 1.25rem !important;
-    font-weight: 600 !important;
-    margin-top: 0.4rem !important;
-    margin-bottom: 0.3rem !important;
+    font-weight: 650 !important;
+    color: #222 !important;
 }
 
-h4 {
-    font-size: 1.05rem !important;
-    font-weight: 500 !important;
-    margin-top: 0.2rem !important;
-    margin-bottom: 0.2rem !important;
-}
-
- /* ================================================
-      📌 Streamlit 기본 라벨(font-size) 크게 만들기
-      (slider / selectbox / radio)
-  ================================================= */
-div[data-testid="stSliderLabel"] label,
-div[data-testid="stSelectboxLabel"] label,
-div[data-testid="stRadioLabel"] label {
-    font-size: 1.22rem !important;
-    font-weight: 600 !important;
-    color: #333 !important;
-}
-
- /* ================================================
-      📌 위젯 간 기본 마진 축소
-  ================================================= */
-div[data-testid="stSelectbox"], 
+ /* ===============================
+      위젯 컨테이너 간격 약간 조정
+================================ */
+div[data-testid="stSelectbox"],
 div[data-testid="stRadio"],
-div[data-testid="stSlider"] {
-    margin-top: -0.2rem !important;
-    margin-bottom: 0.5rem !important;
-}
-
- /* ================================================
-      📌 버튼 스타일 통일
-  ================================================= */
-.stButton>button {
-    font-size: 0.95rem !important;
-    padding: 0.35rem 0.6rem !important;
-    border-radius: 8px !important;
+div[data-testid="stSlider"],
+div[data-testid="stMultiSelect"] {
+    margin-bottom: 0.8rem !important;
 }
 
 </style>
