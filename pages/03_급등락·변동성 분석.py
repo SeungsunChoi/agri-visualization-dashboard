@@ -31,15 +31,13 @@ df = df.dropna(subset=["가격등록일자"])
 df = df[df["조사구분명"].isin(["도매", "소매"])]
 
 # ====================================================
-# 1. UI — 기간 / 품종 / 등급 선택
+# 1. 기간, 품종, 등급 선택
 # ====================================================
 st.markdown("## 📅 기간 · 품종 · 등급 설정")
 
 col1, col2, col3 = st.columns([1.2, 0.9, 0.8])
 
-# --------------------------
-# 📅 기간 선택 (col1)
-# --------------------------
+# ① 기간 선택
 with col1:
     st.markdown("#### 📅 분석 기간")
 
@@ -59,9 +57,7 @@ with col1:
 
     df_period = df[(df["가격등록일자"] >= start_ts) & (df["가격등록일자"] <= end_ts)]
 
-# --------------------------
-# 📌 품종 선택 (col2)
-# --------------------------
+# ② 품종 선택
 with col2:
     st.markdown("#### 📌 품종")
 
@@ -80,9 +76,7 @@ with col2:
 
     df_var = df_item[df_item["품종명"] == 선택_품종]
 
-# --------------------------
-# 📌 등급 선택 (col3)
-# --------------------------
+# ③ 등급 선택
 with col3:
     st.markdown("#### 📌 등급")
 
@@ -104,20 +98,12 @@ if sub_wholesale.empty:
 sub_wholesale[PRICE_COL] = pd.to_numeric(sub_wholesale[PRICE_COL], errors="coerce")
 sub_wholesale = sub_wholesale.dropna(subset=[PRICE_COL]).sort_values("가격등록일자")
 
-# ---------------------------
-# 📌 이동평균 기간 선택
-# ---------------------------
+# 이동평균 선택
 col_w1, col_w2 = st.columns([1, 1])
 with col_w1:
-    window = st.radio(
-        "이동평균 기간",
-        [7, 14, 30],
-        horizontal=True
-    )
+    window = st.radio("이동평균 기간", [7, 14, 30], horizontal=True)
 
-# ---------------------------
-# 📌 급등·급락 계산
-# ---------------------------
+# 급등락 계산
 sub_wholesale["MA"] = sub_wholesale[PRICE_COL].rolling(window).mean()
 sub_wholesale["STD"] = sub_wholesale[PRICE_COL].rolling(window).std()
 
@@ -130,7 +116,7 @@ spike_down = sub_wholesale[sub_wholesale["급락"]]
 sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").astype(str)
 
 # ====================================================
-# 📊 급등·급락 시계열 — 위에서 1번만 표시
+# 📈 급등·급락 시계열 (왼쪽)
 # ====================================================
 base_line = (
     alt.Chart(sub_wholesale)
@@ -146,47 +132,28 @@ base_line = (
 
 spike_up_chart = (
     alt.Chart(spike_up)
-    .mark_circle(
-        size=55,
-        color="rgba(255,0,0,0.60)"
-    )
-    .encode(
-        x="가격등록일자:T",
-        y=f"{PRICE_COL}:Q"
-    )
+    .mark_circle(size=55, color="rgba(255,0,0,0.60)")
+    .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
 )
 
 spike_down_chart = (
     alt.Chart(spike_down)
-    .mark_circle(
-        size=55,
-        color="rgba(30,80,255,0.60)"
-    )
-    .encode(
-        x="가격등록일자:T",
-        y=f"{PRICE_COL}:Q"
-    )
+    .mark_circle(size=55, color="rgba(30,80,255,0.60)")
+    .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
 )
 
 final_chart = (
-    base_line
-    + spike_up_chart
-    + spike_down_chart
+    base_line + spike_up_chart + spike_down_chart
 ).properties(
     width="container",
     height=360,
     title="📉 급등·급락 시계열"
 )
 
-st.altair_chart(final_chart, use_container_width=True)
-
-# ====================================================
-# 📅 급등·급락 날짜 목록
-# ====================================================
+# 날짜 목록
 with col_w2:
     with st.expander("📅 급등·급락 날짜 목록 보기", expanded=False):
         c1, c2 = st.columns(2)
-
         with c1:
             st.markdown("### 🔺 급등 날짜")
             if spike_up.empty:
@@ -204,30 +171,17 @@ with col_w2:
                     st.markdown(f"- **{d}**")
 
 # ====================================================
-# 📈 + 📊 가로 2열 배치 (급등락 시계열 + 월별 횟수)
+# 📈 + 📊 2열 배치 (붙여놓기)
 # ====================================================
 st.markdown("## 🔥 4-1. 급등·급락 시각화 & 월별 통계")
 
 colA, colB = st.columns([1.3, 0.7])
 
-# --------------------------
-# 📈 급등·급락 시계열 (왼쪽)
-# --------------------------
 with colA:
     st.markdown("### 📈 급등·급락 시계열")
-
     st.altair_chart(final_chart, use_container_width=True)
 
-# --------------------------
-# 📊 월별 급등·급락 (오른쪽)
-# --------------------------
-with colB:
-    st.markdown("### 📊 월별 급등·급락 횟수")
-
-    st.altair_chart(chart_div, use_container_width=True)
-# --------------------------
-# 📊 월별 급등·급락
-# --------------------------
+# 월별 급등·급락
 with colB:
     st.markdown("### 📊 월별 급등·급락 횟수")
 
@@ -265,15 +219,13 @@ with colB:
     st.altair_chart(chart_div, use_container_width=True)
 
 # ====================================================
-# 📉 변동성 + 📦 박스플롯
+# 📉 5·6 변동성 & 박스플롯
 # ====================================================
 st.markdown("## 📉 5·6. 월별 변동성 & 박스플롯")
 
 colC, colD = st.columns(2)
 
-# --------------------------
 # 변동성
-# --------------------------
 with colC:
     st.markdown("### 📉 월별 가격 변동성")
 
@@ -306,9 +258,7 @@ with colC:
 
     st.altair_chart(vol_chart, use_container_width=True)
 
-# --------------------------
 # 박스플롯
-# --------------------------
 with colD:
     st.markdown("### 📦 월별 가격 박스플롯")
 
@@ -325,4 +275,5 @@ with colD:
     )
 
     st.altair_chart(box_chart, use_container_width=True)
+
 
