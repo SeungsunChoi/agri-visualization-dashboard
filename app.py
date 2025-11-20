@@ -100,7 +100,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # --------------------------
 if st.session_state["selected_item"]:
     if st.button("👉 다음 단계로 이동", type="primary"):
-        st.switch_page("pages/01_도매·소매 가격 개요.py")
+        st.switch_page("pages/01_도·소매 가격 개요.py")
+
 
 
 
