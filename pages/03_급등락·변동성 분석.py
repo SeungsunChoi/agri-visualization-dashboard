@@ -108,10 +108,9 @@ sub_wholesale[PRICE_COL] = pd.to_numeric(sub_wholesale[PRICE_COL], errors="coerc
 sub_wholesale = sub_wholesale.dropna(subset=[PRICE_COL]).sort_values("가격등록일자")
 
 # ---------------------------
-# 📌 이동평균 기간 선택 (왼쪽)
+# 📌 이동평균 기간 선택
 # ---------------------------
 col_w1, col_w2 = st.columns([1, 1])
-
 with col_w1:
     window = st.radio(
         "이동평균 기간",
@@ -120,7 +119,7 @@ with col_w1:
     )
 
 # ---------------------------
-# 📌 급등락 계산 (window 선택 후)
+# 📌 급등·급락 계산
 # ---------------------------
 sub_wholesale["MA"] = sub_wholesale[PRICE_COL].rolling(window).mean()
 sub_wholesale["STD"] = sub_wholesale[PRICE_COL].rolling(window).std()
@@ -131,19 +130,18 @@ sub_wholesale["급락"] = sub_wholesale[PRICE_COL] < (sub_wholesale["MA"] - 2 * 
 spike_up = sub_wholesale[sub_wholesale["급등"]]
 spike_down = sub_wholesale[sub_wholesale["급락"]]
 
-# 연월 컬럼 (뒤에서 사용)
 sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").astype(str)
 
 # ====================================================
-# 📊 급등·급락 시각화
+# 📊 급등·급락 시각화 (최종 한 개 버전)
 # ====================================================
 import altair as alt
 
-# 🔥 시계열 라인 색 더 연하게
+# 시계열 라인 (더 연하게)
 base_line = (
     alt.Chart(sub_wholesale)
     .mark_line(
-        color="rgba(0,0,0,0.20)",   # 기존보다 더 연하게
+        color="rgba(0,0,0,0.20)",
         strokeWidth=1.2
     )
     .encode(
@@ -152,11 +150,11 @@ base_line = (
     )
 )
 
-# 🔥 급등 지점 (원 크기 55)
+# 급등 점 (작게)
 spike_up_chart = (
     alt.Chart(spike_up)
     .mark_circle(
-        size=55,                     # 원을 살짝 더 작게
+        size=55,
         color="rgba(255,0,0,0.60)"
     )
     .encode(
@@ -165,11 +163,11 @@ spike_up_chart = (
     )
 )
 
-# 🔥 급락 지점 (원 크기 55)
+# 급락 점 (작게)
 spike_down_chart = (
     alt.Chart(spike_down)
     .mark_circle(
-        size=55,                     # 동일하게 축소
+        size=55,
         color="rgba(30,80,255,0.60)"
     )
     .encode(
@@ -189,6 +187,7 @@ final_chart = (
 )
 
 st.altair_chart(final_chart, use_container_width=True)
+
 
 # ---------------------------
 # 📅 급등·급락 날짜 목록 (오른쪽 expander)
