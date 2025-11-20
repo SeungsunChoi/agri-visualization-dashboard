@@ -132,13 +132,13 @@ base_line = (
 
 spike_up_chart = (
     alt.Chart(spike_up)
-    .mark_circle(size=55, color="rgba(255,0,0,0.60)")
+    .mark_circle(size=40, color="rgba(255,0,0,1)")
     .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
 )
 
 spike_down_chart = (
     alt.Chart(spike_down)
-    .mark_circle(size=55, color="rgba(30,80,255,0.60)")
+    .mark_circle(size=55, color="rgba(30,80,255,0.70)")
     .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
 )
 
