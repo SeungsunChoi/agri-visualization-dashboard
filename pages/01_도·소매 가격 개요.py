@@ -16,7 +16,7 @@ st.markdown("""
 # =========================================================
 # 📌 2) 페이지 제목
 # =========================================================
-st.markdown('<div class="big-title">📌 품종·등급 선택 페이지 (kg당 가격 기준)</div>', unsafe_allow_html=True)
+st.markdown('<div class="big-title">📌 도·소매 가격 개요 (kg당 가격 기준)</div>', unsafe_allow_html=True)
 
 PRICE_COL = "kg당가격"
 
@@ -131,7 +131,7 @@ colA, colB = st.columns(2)
 # 📈 일자별 가격 추이
 # ----------------------------
 with colA:
-    st.markdown('<div class="section-title">📈 일자별 가격 추이 (도매·소매)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📈 도·소매 일자별 가격 추이</div>', unsafe_allow_html=True)
 
     line_chart = (
         alt.Chart(sub_grouped)
@@ -147,16 +147,20 @@ with colA:
     st.altair_chart(line_chart, use_container_width=True)
 
 # ----------------------------
-# 📊 도매·소매 가격 분포 (Boxplot)
+# 📊 도·소매 가격 분포 Boxplot
 # ----------------------------
 with colB:
-    st.markdown('<div class="section-title">📊 도매·소매 가격 분포 (Boxplot)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📊 도·소매 가격 분포 Boxplot</div>', unsafe_allow_html=True)
 
     box_chart = (
         alt.Chart(sub)
         .mark_boxplot()
         .encode(
-            x=alt.X("조사구분명:N", title="조사구분"),
+            x=alt.X(
+                "조사구분명:N",
+                title="조사구분",
+                axis=alt.Axis(labelAngle=0)   # 🔥 글자 회전 제거
+            ),
             y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
             color="조사구분명:N",
         )
@@ -167,7 +171,7 @@ with colB:
 # =========================================================
 # 8) 💰 월별 평균 마진 그래프
 # =========================================================
-st.markdown('<div class="section-title">💰 월별 평균 마진 (소매 - 도매)</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">💰 도·소매 월별 평균 마진</div>', unsafe_allow_html=True)
 
 # 피벗
 pivot = sub_grouped.pivot(
@@ -204,11 +208,24 @@ if {"도매", "소매"}.issubset(pivot.columns):
     )
     st.altair_chart(margin_bar, use_container_width=True)
 
-    avg_margin = month_margin["마진"].mean()
+    # 평균 값 계산
+avg_margin = month_margin["마진"].mean()
+avg_wholesale = margin_df["도매"].mean()
+avg_retail = margin_df["소매"].mean()
+
+# -----------------------------------------
+# 📌 세로 X, 가로로 3칸 배치
+# -----------------------------------------
+c1, c2, c3 = st.columns(3)
+
+with c1:
     st.markdown(f"✔ 선택 기간 평균 마진: **{avg_margin:,.0f}원/kg**")
 
-else:
-    st.info("현재 조건에서는 도매·소매가 모두 존재하지 않아 마진 계산이 불가능합니다.")
+with c2:
+    st.markdown(f"✔ 평균 도매가격: **{avg_wholesale:,.0f}원/kg**")
+
+with c3:
+    st.markdown(f"✔ 평균 소매가격: **{avg_retail:,.0f}원/kg**")
 
 
 
