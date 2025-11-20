@@ -121,7 +121,7 @@ sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").
 base_line = (
     alt.Chart(sub_wholesale)
     .mark_line(
-        color="rgba(0,0,0,0.5)",
+        color="rgba(0,0,0,0.3)",
         strokeWidth=1.2
     )
     .encode(
