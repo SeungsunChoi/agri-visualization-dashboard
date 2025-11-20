@@ -207,7 +207,7 @@ with colL:
                 y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
                 color="시도명:N",
             )
-            .properties(height=230)
+            .properties(height=300)
         )
         st.altair_chart(chart_region, use_container_width=True)
     else:
@@ -227,7 +227,7 @@ with colR:
             y=alt.Y("시도명:N", title=""),
             color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="blues")),
         )
-        .properties(height=230)
+        .properties(height=300)
     )
     st.altair_chart(heatmap, use_container_width=True)
 
@@ -305,7 +305,7 @@ with colL2:
                 y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
                 color="시장_라벨:N",
             )
-            .properties(height=230)
+            .properties(height=300)
         )
         st.altair_chart(line_market, use_container_width=True)
     else:
@@ -325,7 +325,7 @@ with colR2:
                 y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
                 color="시장_라벨:N",
             )
-            .properties(height=230)
+            .properties(height=300)
         )
         st.altair_chart(box_chart, use_container_width=True)
     else:
