@@ -265,7 +265,7 @@ with colC:
                 alt.Tooltip("변동계수:Q", title="CV", format=".3f"),
             ]
         )
-        .properties(height=260)
+        .properties(height=360)
     )
 
     st.altair_chart(vol_chart, use_container_width=True)
@@ -283,7 +283,7 @@ with colD:
             x=alt.X("연월:N", sort=box_df["연월"].unique().tolist()),
             y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)")
         )
-        .properties(height=260)
+        .properties(height=360)
     )
 
     st.altair_chart(box_chart, use_container_width=True)
