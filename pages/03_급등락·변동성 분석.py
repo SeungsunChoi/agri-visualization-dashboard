@@ -121,7 +121,7 @@ sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").
 base_line = (
     alt.Chart(sub_wholesale)
     .mark_line(
-        color="rgba(0,0,0,0.20)",
+        color="rgba(0,0,0,0.5)",
         strokeWidth=1.2
     )
     .encode(
@@ -138,7 +138,7 @@ spike_up_chart = (
 
 spike_down_chart = (
     alt.Chart(spike_down)
-    .mark_circle(size=55, color="rgba(30,80,255,0.70)")
+    .mark_circle(size=40, color="rgba(30,80,255,1)")
     .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
 )
 
