@@ -131,8 +131,64 @@ sub_wholesale["급락"] = sub_wholesale[PRICE_COL] < (sub_wholesale["MA"] - 2 * 
 spike_up = sub_wholesale[sub_wholesale["급등"]]
 spike_down = sub_wholesale[sub_wholesale["급락"]]
 
-# 연월 컬럼 한 번 생성 (뒤에서 모두 사용)
+# 연월 컬럼 (뒤에서 사용)
 sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").astype(str)
+
+# ====================================================
+# 📊 급등·급락 시각화
+# ====================================================
+import altair as alt
+
+# 🔥 시계열 라인 색 더 연하게
+base_line = (
+    alt.Chart(sub_wholesale)
+    .mark_line(
+        color="rgba(0,0,0,0.20)",   # 기존보다 더 연하게
+        strokeWidth=1.2
+    )
+    .encode(
+        x="가격등록일자:T",
+        y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)")
+    )
+)
+
+# 🔥 급등 지점 (원 크기 55)
+spike_up_chart = (
+    alt.Chart(spike_up)
+    .mark_circle(
+        size=55,                     # 원을 살짝 더 작게
+        color="rgba(255,0,0,0.60)"
+    )
+    .encode(
+        x="가격등록일자:T",
+        y=f"{PRICE_COL}:Q"
+    )
+)
+
+# 🔥 급락 지점 (원 크기 55)
+spike_down_chart = (
+    alt.Chart(spike_down)
+    .mark_circle(
+        size=55,                     # 동일하게 축소
+        color="rgba(30,80,255,0.60)"
+    )
+    .encode(
+        x="가격등록일자:T",
+        y=f"{PRICE_COL}:Q"
+    )
+)
+
+final_chart = (
+    base_line
+    + spike_up_chart
+    + spike_down_chart
+).properties(
+    width="container",
+    height=360,
+    title="📉 급등·급락 시계열"
+)
+
+st.altair_chart(final_chart, use_container_width=True)
 
 # ---------------------------
 # 📅 급등·급락 날짜 목록 (오른쪽 expander)
