@@ -121,27 +121,36 @@ sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").
 base_line = (
     alt.Chart(sub_wholesale)
     .mark_line(
-        color="rgba(0,0,0,0.3)",
+        color="rgba(0,0,0,0.3)",   # 더 연한 라인
         strokeWidth=1.2
     )
     .encode(
-        x="가격등록일자:T",
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),
         y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)")
     )
 )
 
+# 🔺 급등 점
 spike_up_chart = (
     alt.Chart(spike_up)
     .mark_circle(size=30, color="rgba(255,0,0,1)")
-    .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
+    .encode(
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),
+        y=f"{PRICE_COL}:Q"
+    )
 )
 
+# 🔵 급락 점
 spike_down_chart = (
     alt.Chart(spike_down)
     .mark_circle(size=30, color="rgba(30,80,255,1)")
-    .encode(x="가격등록일자:T", y=f"{PRICE_COL}:Q")
+    .encode(
+        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),
+        y=f"{PRICE_COL}:Q"
+    )
 )
 
+# 🟦 최종 시계열
 final_chart = (
     base_line + spike_up_chart + spike_down_chart
 ).properties(
@@ -157,17 +166,29 @@ st.markdown("## 🚨 4. 급등·급락 시각화 & 월별 통계")
 
 colA, colB = st.columns([1.3, 0.7])
 
+# -------------------------------
+# 📈 왼쪽: 급등·급락 시계열
+# -------------------------------
 with colA:
     st.markdown("### 📈 급등·급락 시계열")
-    st.altair_chart(final_chart, use_container_width=True)
+    st.altair_chart(
+        final_chart.properties(height=360),
+        use_container_width=True
+    )
 
-# 월별 급등·급락
+# -------------------------------
+# 📊 오른쪽: 월별 급등·급락 횟수
+# -------------------------------
 with colB:
     st.markdown("### 📊 월별 급등·급락 횟수")
 
+    # 월별 count 계산
     count_df = (
         sub_wholesale.groupby("연월")
-        .agg(급등횟수=("급등", "sum"), 급락횟수=("급락", "sum"))
+        .agg(
+            급등횟수=("급등", "sum"),
+            급락횟수=("급락", "sum")
+        )
         .reset_index()
     )
 
@@ -182,18 +203,29 @@ with colB:
         value_name="값"
     )
 
-    df_melt["구분"] = df_melt["구분"].map({"급등_signed": "급등", "급락_signed": "급락"})
-    color_scale = alt.Scale(domain=["급등", "급락"], range=["red", "blue"])
+    df_melt["구분"] = df_melt["구분"].map({
+        "급등_signed": "급등",
+        "급락_signed": "급락"
+    })
 
+    color_scale = alt.Scale(
+        domain=["급등", "급락"],
+        range=["red", "blue"]
+    )
+
+    # 📊 막대 그래프 그리기
     chart_div = (
         alt.Chart(df_melt)
         .mark_bar()
         .encode(
             x=alt.X("연월:N", sort=count_df["연월"].tolist()),
-            y="값:Q",
+            y=alt.Y("값:Q", title="횟수"),
             color=alt.Color("구분:N", scale=color_scale),
         )
-        .properties(height=340)
+        .properties(
+            height=360,
+            width="container"
+        )
     )
 
     st.altair_chart(chart_div, use_container_width=True)
