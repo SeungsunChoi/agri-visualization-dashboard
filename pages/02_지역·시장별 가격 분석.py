@@ -8,20 +8,50 @@ st.markdown("""
 <style>
 
 /* =======================================
-   🔥 페이지 내 모든 label 태그 직접 강제 적용
+   🔥 Streamlit 구분선 완전 제거
 ======================================= */
-label {
-    font-size: 1.35rem !important;
+
+/* markdown에서 생성되는 <hr> */
+hr {
+    display: none !important;
+}
+
+/* Streamlit 내부에서 자동 생성되는 divider */
+div[role="separator"] {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* =======================================
+   🔥 라벨(font-size)만 확장 (지금 너가 만족한 크기 그대로)
+======================================= */
+
+/* Slider / Selectbox / Radio / Checkbox 라벨 */
+div[data-testid="stWidgetLabel"] > label,
+div[data-testid="stSelectboxLabel"] > label,
+div[data-testid="stRadioLabel"] > label,
+div[data-testid="stSliderLabel"] > label,
+div[data-testid="stCheckboxLabel"] > label {
+    font-size: 1.35rem !important;   /* ← 너가 원래 쓰던 크기 유지 */
     font-weight: 650 !important;
     color: #222 !important;
 }
 
-/* Streamlit 기본 UI 요소 내부 텍스트까지 포함 */
-div[data-baseweb="select"] div,
-div[data-testid="stWidgetLabel"],
-div[data-testid="stMarkdown"],
-span {
-    font-size: 1.15rem !important;
+/* =======================================
+   🔥 불필요한 전역 오버라이드 제거
+   (span/div 전체를 바꿔서 UI 깨지던 문제 해결)
+======================================= */
+
+label {
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+}
+
+span, div {
+    font-size: inherit !important;
 }
 
 </style>
