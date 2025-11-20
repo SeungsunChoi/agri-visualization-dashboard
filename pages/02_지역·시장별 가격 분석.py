@@ -4,54 +4,78 @@ import altair as alt
 
 PRICE_COL = "kg당가격"
 
-# ---------------------------------------------------------
-# 🔧 CSS 스타일(제목 크기 / 여백 축소 / 위젯 간격 조절)
-# ---------------------------------------------------------
 st.markdown("""
 <style>
 
-/* ---------------------------------------------------
-   🔥 Streamlit 기본 구분선(hr / decoration) 제거
---------------------------------------------------- */
-div[data-testid="stDecoration"] {
-    display: none !important;
-}
-hr {
-    display: none !important;
-}
+ /* ================================================
+      🔥 Streamlit 기본 장식 제거
+  ================================================= */
+div[data-testid="stDecoration"] { display: none !important; }
+hr { display: none !important; }
 
-/* ---------------------------------------------------
-   📌 메인 제목 스타일
---------------------------------------------------- */
+ /* ================================================
+      📌 페이지 메인 제목 (h1)
+  ================================================= */
 .main-title {
-    font-size: 2.0rem !important;
-    font-weight: 700 !important;
-    margin-top: 0.2rem !important;
-    margin-bottom: 0.6rem !important;
+    font-size: 2.1rem !important;
+    font-weight: 750 !important;
+    margin-top: 0.3rem !important;
+    margin-bottom: 0.7rem !important;
 }
 
-/* ---------------------------------------------------
-   📌 제목 레벨 2~4 축소 + 여백 최소화
---------------------------------------------------- */
+ /* ================================================
+      📌 섹션 제목 (h2, h3)
+  ================================================= */
 h2 {
-    font-size: 1.22rem !important;
-    font-weight: 600 !important;
-    margin-top: 0.15rem !important;
-    margin-bottom: 0.15rem !important;
+    font-size: 1.45rem !important;
+    font-weight: 650 !important;
+    margin-top: 0.6rem !important;
+    margin-bottom: 0.4rem !important;
 }
 
 h3 {
-    font-size: 1.00rem !important;
-    font-weight: 500 !important;
-    margin-top: 0.10rem !important;
-    margin-bottom: 0.10rem !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.3rem !important;
 }
 
 h4 {
-    font-size: 0.90rem !important;
-    font-weight: 450 !important;
-    margin-top: 0.08rem !important;
-    margin-bottom: 0.08rem !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+ /* ================================================
+      📌 Streamlit 기본 라벨(font-size) 크게 만들기
+      (slider / selectbox / radio)
+  ================================================= */
+div[data-testid="stSliderLabel"] label,
+div[data-testid="stSelectboxLabel"] label,
+div[data-testid="stRadioLabel"] label {
+    font-size: 1.22rem !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+}
+
+ /* ================================================
+      📌 위젯 간 기본 마진 축소
+  ================================================= */
+div[data-testid="stSelectbox"], 
+div[data-testid="stRadio"],
+div[data-testid="stSlider"] {
+    margin-top: -0.2rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+ /* ================================================
+      📌 버튼 스타일 통일
+  ================================================= */
+.stButton>button {
+    font-size: 0.95rem !important;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: 8px !important;
 }
 
 </style>
