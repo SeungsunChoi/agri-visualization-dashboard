@@ -30,9 +30,6 @@ df["가격등록일자"] = pd.to_datetime(df["가격등록일자"], errors="coer
 df = df.dropna(subset=["가격등록일자"])
 df = df[df["조사구분명"].isin(["도매", "소매"])]
 
-# 🔥 친환경 제거 (도매/소매만 사용)
-df = df[df["조사구분명"].isin(["도매", "소매"])]
-
 # ====================================================
 # 1. UI — 기간 / 품종 / 등급 선택
 # ====================================================
@@ -133,11 +130,8 @@ spike_down = sub_wholesale[sub_wholesale["급락"]]
 sub_wholesale["연월"] = sub_wholesale["가격등록일자"].dt.to_period("M").astype(str)
 
 # ====================================================
-# 📊 급등·급락 시각화 (최종 한 개 버전)
+# 📊 급등·급락 시계열 — 위에서 1번만 표시
 # ====================================================
-import altair as alt
-
-# 시계열 라인 (더 연하게)
 base_line = (
     alt.Chart(sub_wholesale)
     .mark_line(
@@ -150,7 +144,6 @@ base_line = (
     )
 )
 
-# 급등 점 (작게)
 spike_up_chart = (
     alt.Chart(spike_up)
     .mark_circle(
@@ -163,7 +156,6 @@ spike_up_chart = (
     )
 )
 
-# 급락 점 (작게)
 spike_down_chart = (
     alt.Chart(spike_down)
     .mark_circle(
@@ -188,10 +180,9 @@ final_chart = (
 
 st.altair_chart(final_chart, use_container_width=True)
 
-
-# ---------------------------
-# 📅 급등·급락 날짜 목록 (오른쪽 expander)
-# ---------------------------
+# ====================================================
+# 📅 급등·급락 날짜 목록
+# ====================================================
 with col_w2:
     with st.expander("📅 급등·급락 날짜 목록 보기", expanded=False):
         c1, c2 = st.columns(2)
@@ -216,36 +207,6 @@ with col_w2:
 # 📈 + 📊 가로 2열 배치
 # ====================================================
 colA, colB = st.columns(2)
-
-# --------------------------
-# 📈 급등·급락 시계열
-# --------------------------
-# --------------------------
-# 📈 급등·급락 시계열
-# --------------------------
-with colA:
-    st.markdown("### 📈 급등·급락 시계열")
-
-    base = alt.Chart(sub_wholesale).mark_line(color="black").encode(
-        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),   # ✅ 수정됨
-        y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)")
-    )
-
-    dots_up = alt.Chart(spike_up).mark_circle(size=60, color="red").encode(
-        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),  # ✅ 수정됨
-        y=f"{PRICE_COL}:Q"
-    )
-
-    dots_down = alt.Chart(spike_down).mark_circle(size=60, color="blue").encode(
-        x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m")),  # ✅ 수정됨
-        y=f"{PRICE_COL}:Q"
-    )
-
-    st.altair_chart(
-        alt.layer(base, dots_up, dots_down).properties(height=340),
-        use_container_width=True
-    )
-
 
 # --------------------------
 # 📊 월별 급등·급락
@@ -287,7 +248,7 @@ with colB:
     st.altair_chart(chart_div, use_container_width=True)
 
 # ====================================================
-# 📉 변동성 + 📦 박스플롯 (2열)
+# 📉 변동성 + 📦 박스플롯
 # ====================================================
 st.markdown("## 📉 5·6. 월별 변동성 & 박스플롯")
 
@@ -347,3 +308,4 @@ with colD:
     )
 
     st.altair_chart(box_chart, use_container_width=True)
+
