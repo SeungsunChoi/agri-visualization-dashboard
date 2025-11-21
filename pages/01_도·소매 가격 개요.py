@@ -65,7 +65,7 @@ df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 # 2. 사이드바(Sidebar) 필터 
 # --------------------------
 with st.sidebar:
-    st.header("🛠 분석 옵션 설정")
+    st.header("분석 옵션 설정")
     
     # 기간 선택
     min_date = df["가격등록일자"].min().date()
@@ -188,6 +188,7 @@ if has_wholesale and has_retail:
     ).properties(height=300)
     
     st.altair_chart(margin_bar, use_container_width=True)
+
 
 
 
