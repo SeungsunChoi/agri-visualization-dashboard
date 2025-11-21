@@ -2,331 +2,138 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-PRICE_COL = "kg당가격"
-
+st.set_page_config(page_title="지역·시장 분석", layout="wide")
+# ==========================================
+# 🎨 [옵션 1] 고급 그라데이션 배경 적용 코드
+# ==========================================
 st.markdown("""
 <style>
-
-/* =======================================
-   🔥 Streamlit 구분선 완전 제거
-======================================= */
-
-/* markdown에서 생성되는 <hr> */
-hr {
-    display: none !important;
+/* 전체 배경 (App View) */
+.stApp {
+    background: rgb(20,30,48);
+    background: linear-gradient(90deg, rgba(20,30,48,1) 0%, rgba(36,59,85,1) 50%, rgba(28,69,50,1) 100%);
+    background-attachment: fixed; /* 스크롤해도 배경 고정 */
 }
 
-/* Streamlit 내부에서 자동 생성되는 divider */
-div[role="separator"] {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+/* 사이드바 배경 (약간 투명하게) */
+[data-testid="stSidebar"] {
+    background-color: rgba(20, 30, 40, 0.8);
 }
 
-/* =======================================
-   🔥 라벨(font-size)만 확장 (지금 너가 만족한 크기 그대로)
-======================================= */
-
-/* Slider / Selectbox / Radio / Checkbox 라벨 */
-div[data-testid="stWidgetLabel"] > label,
-div[data-testid="stSelectboxLabel"] > label,
-div[data-testid="stRadioLabel"] > label,
-div[data-testid="stSliderLabel"] > label,
-div[data-testid="stCheckboxLabel"] > label {
-    font-size: 1.35rem !important;   /* ← 너가 원래 쓰던 크기 유지 */
-    font-weight: 650 !important;
-    color: #222 !important;
+/* 메트릭/글씨 잘 보이게 배경 박스 추가 (선택사항) */
+[data-testid="stMetricValue"], h1, h2, h3 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* 글자 그림자 */
 }
-
-/* =======================================
-   🔥 불필요한 전역 오버라이드 제거
-   (span/div 전체를 바꿔서 UI 깨지던 문제 해결)
-======================================= */
-
-label {
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    color: inherit !important;
-}
-
-span, div {
-    font-size: inherit !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
+PRICE_COL = "kg당가격"
 
+# 데이터 및 세션 체크
+if "selected_item" not in st.session_state or not st.session_state["selected_item"]:
+    st.warning(" 메인 페이지에서 품목을 먼저 선택해주세요.")
+    st.stop()
 
+item = st.session_state["selected_item"]
+st.title(f" {item} 지역 및 시장별 심층 분석")
 
-
-# ======================================================
-# 0. 제목 (항상 표시되도록 container로 보호)
-# ======================================================
-st.markdown('<h1 class="main-title">📍 지역·시장별 가격 비교</h1>', unsafe_allow_html=True)
-
-# ======================================================
-# 0. 데이터 로드
-# ======================================================
 DATA_PATH = "data/농수축산_분석가능품목_only_v2_with_kgprice.parquet"
 df = pd.read_parquet(DATA_PATH)
+df = df[(df["품목명"] == item) & (df["조사구분명"].isin(["도매", "소매"]))].copy()
+df["가격등록일자"] = pd.to_datetime(df["가격등록일자"])
 
-df["가격등록일자"] = pd.to_datetime(df["가격등록일자"], errors="coerce")
-df = df.dropna(subset=["가격등록일자"])
-df = df[df["조사구분명"].isin(["도매", "소매"])]
+# --------------------------
+# 🛠 사이드바: 통합 필터
+# --------------------------
+with st.sidebar:
+    st.header(" 분석 조건 설정")
+    
+    # 기간
+    min_d, max_d = df["가격등록일자"].min(), df["가격등록일자"].max()
+    dates = st.slider(" 기간 선택", min_value=min_d.date(), max_value=max_d.date(), value=(min_d.date(), max_d.date()))
+    
+    # 품종/등급
+    filtered_date = df[(df["가격등록일자"] >= pd.to_datetime(dates[0])) & (df["가격등록일자"] <= pd.to_datetime(dates[1]))]
+    p_list = sorted(filtered_date["품종명"].dropna().unique())
+    sel_p = st.selectbox("품종", p_list)
+    
+    g_list = sorted(filtered_date[filtered_date["품종명"] == sel_p]["산물등급명"].dropna().unique())
+    sel_g = st.selectbox("등급", g_list)
+    
+    # 최종 데이터
+    sub = filtered_date[(filtered_date["품종명"] == sel_p) & (filtered_date["산물등급명"] == sel_g)].copy()
 
-# ------------------------------
-# 🔹 품목 선택 여부 체크
-# ------------------------------
-item = st.session_state.get("selected_item", None)
-
-if item is None:
-    st.warning("⚠ 먼저 첫 화면(app.py)에서 품목을 선택해주세요.")
-    st.info("현재 페이지는 품목이 선택되면 자동으로 업데이트됩니다.")
-    st.stop()
-
-
-# ------------------------------
-# 🔹 품목 필터링
-# ------------------------------
-df_item = df[df["품목명"] == item].copy()
-
-if df_item.empty:
-    st.warning(f"⚠ 선택된 품목 **{item}** 에 대한 데이터가 존재하지 않습니다.")
-    st.info("다른 품목을 선택해 주세요.")
-    st.stop()
-
-
-# ======================================================
-# 1. 분석 조건
-# ======================================================
-st.markdown("#### 🔧 분석 조건 설정")
-
-col_date, col_var, col_grade = st.columns([2, 1, 1])
-
-with col_date:
-    min_date = df_item["가격등록일자"].min().to_pydatetime()
-    max_date = df_item["가격등록일자"].max().to_pydatetime()
-
-    start_ts, end_ts = st.slider(
-        "📅 분석 기간",
-        min_value=min_date,
-        max_value=max_date,
-        value=(min_date, max_date),
-        format="YYYY-MM-DD",
-    )
-
-df_period = df_item[
-    (df_item["가격등록일자"] >= start_ts) &
-    (df_item["가격등록일자"] <= end_ts)
-]
-
-with col_var:
-    품종_list = sorted(df_period["품종명"].dropna().unique())
-    선택_품종 = st.selectbox("📌 품종", 품종_list)
-
-df_var = df_period[df_period["품종명"] == 선택_품종]
-
-with col_grade:
-    등급_list = sorted(df_var["산물등급명"].dropna().unique())
-    선택_등급 = st.selectbox("📌 등급", 등급_list)
-
-sub = df_var[df_var["산물등급명"] == 선택_등급].copy()
 if sub.empty:
-    st.warning("⚠ 선택된 조건 데이터 없음")
+    st.error("조건에 맞는 데이터가 없습니다.")
     st.stop()
 
+# --------------------------
+#  탭(Tabs) 구성 - Option C 적용
+# --------------------------
+tab1, tab2 = st.tabs([" 지역별 분석 (시도 단위)", " 시장별 분석 (세부 시장)"])
 
-# ======================================================
-# 2. 지역 비교
-# ======================================================
-st.markdown("---")
-st.markdown("#### 🌍 지역별 가격 비교")
-
-sub_region_base = sub.copy()
-sub_region_base["연월"] = sub_region_base["가격등록일자"].dt.to_period("M").astype(str)
-
-if "selected_regions" not in st.session_state:
-    st.session_state["selected_regions"] = []
-
-# 🔝 상단 한 줄
-top1, top2, top3, top4 = st.columns([1.1, 2.5, 0.6, 0.9])
-
-with top1:
-    price_type = st.radio(
-        "지역 비교 기준 선택",
-        ["도매", "소매"],
-        horizontal=True,
-        key="region_price_type"
-    )
-
-sub_region = sub_region_base[sub_region_base["조사구분명"] == price_type].copy()
-
-with top2:
-    all_regions = sorted(sub_region["시도명"].unique())
-    remaining_regions = [r for r in all_regions if r not in st.session_state["selected_regions"]]
-    region_to_add = st.selectbox("지역 선택", remaining_regions if remaining_regions else ["추가할 지역 없음"],
-                                 label_visibility="collapsed")
-
-with top3:
-    if st.button("➕", help="지역 추가"):
-        if region_to_add != "추가할 지역 없음":
-            st.session_state["selected_regions"].append(region_to_add)
-
-with top4:
-    if st.button("🗑 전체 초기화", key="region_reset_small"):
-        st.session_state["selected_regions"] = []
-        st.rerun()
-
-# 선택된 지역 삭제 버튼
-if st.session_state["selected_regions"]:
-    btn_cols = st.columns(len(st.session_state["selected_regions"]))
-    for i, region in enumerate(st.session_state["selected_regions"]):
-        with btn_cols[i]:
-            if st.button(f"❌ {region}", key=f"del_region_{i}"):
-                st.session_state["selected_regions"].remove(region)
-                st.rerun()
-
-
-# 📈 / 📊 그래프
-colL, colR = st.columns([1.15, 1], gap="small")
-
-# --- 좌측: 시계열 ---
-with colL:
-    st.markdown("##### 📈 시계열")
-    ts = sub_region.groupby(["시도명", "가격등록일자"], as_index=False)[PRICE_COL].mean()
-    ts_sel = ts[ts["시도명"].isin(st.session_state["selected_regions"])]
-
-    if not ts_sel.empty:
-        chart_region = (
-            alt.Chart(ts_sel)
-            .mark_line()
-            .encode(
-                x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m"), title=""),
-                y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
-                color="시도명:N",
-            )
-            .properties(height=360)
-        )
-        st.altair_chart(chart_region, use_container_width=True)
-    else:
-        st.info("왼쪽에서 지역을 하나 이상 선택해 주세요.")
-
-# --- 우측: 히트맵 ---
-with colR:
-    st.markdown(f"##### 📊 연·월 패턴 ({price_type})")
-
-    heat = sub_region.groupby(["시도명", "연월"], as_index=False)[PRICE_COL].mean()
-
-    heatmap = (
-        alt.Chart(heat)
-        .mark_rect()
-        .encode(
-            x=alt.X("연월:N", sort=sorted(heat["연월"].unique()), axis=alt.Axis(labelAngle=-45), title=""),
+# [Tab 1] 지역 분석
+with tab1:
+    st.markdown("####  지역별 가격 비교 및 히트맵")
+    
+    col_con1, col_con2 = st.columns([1, 3])
+    with col_con1:
+        target_type = st.radio("조사 기준", ["도매", "소매"], horizontal=True, key="t1_radio")
+        regions = sorted(sub[sub["조사구분명"] == target_type]["시도명"].unique())
+        sel_regions = st.multiselect("비교할 지역 선택", regions, default=regions[:2] if len(regions)>1 else regions)
+    
+    sub_r = sub[(sub["조사구분명"] == target_type) & (sub["시도명"].isin(sel_regions))]
+    
+    if not sub_r.empty:
+        # 시계열
+        chart_r = alt.Chart(sub_r.groupby(["가격등록일자", "시도명"], as_index=False)[PRICE_COL].mean()).mark_line().encode(
+            x="가격등록일자:T", y=f"{PRICE_COL}:Q", color="시도명:N"
+        ).properties(height=300, title="지역별 가격 추이")
+        st.altair_chart(chart_r, use_container_width=True)
+        
+        # 히트맵 (월별 패턴)
+        sub_r["연월"] = sub_r["가격등록일자"].dt.to_period("M").astype(str)
+        heat_data = sub_r.groupby(["시도명", "연월"], as_index=False)[PRICE_COL].mean()
+        
+        heatmap = alt.Chart(heat_data).mark_rect().encode(
+            x=alt.X("연월:O", title=""),
             y=alt.Y("시도명:N", title=""),
-            color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="blues")),
-        )
-        .properties(height=360)
-    )
-    st.altair_chart(heatmap, use_container_width=True)
-
-
-# ======================================================
-# 3. 시장 비교
-# ======================================================
-st.markdown("---")
-st.markdown("#### 🏬 시장별 가격 비교")
-
-sub_market_base = sub.copy()
-sub_market_base["시장_라벨"] = sub_market_base.apply(
-    lambda x: f"{x['시장명']} ({x['시도명']})", axis=1
-)
-
-if "selected_markets" not in st.session_state:
-    st.session_state["selected_markets"] = []
-
-m1, m2, m3, m4 = st.columns([1.1, 2.5, 0.6, 0.9])
-
-with m1:
-    market_price_type = st.radio(
-        "시장 비교 기준 선택", ["도매", "소매"],
-        horizontal=True, key="market_price_type"
-    )
-
-sub_market = sub_market_base[sub_market_base["조사구분명"] == market_price_type].copy()
-
-with m2:
-    remaining_mk = [
-        m for m in sorted(sub_market["시장_라벨"].unique())
-        if m not in st.session_state["selected_markets"]
-    ]
-    market_to_add = st.selectbox("시장 선택",
-                                 remaining_mk if remaining_mk else ["추가할 시장 없음"],
-                                 label_visibility="collapsed")
-
-with m3:
-    if st.button("➕ 시장"):
-        if market_to_add != "추가할 시장 없음":
-            st.session_state["selected_markets"].append(market_to_add)
-
-with m4:
-    if st.button("🗑 전체 초기화", key="market_reset_small"):
-        st.session_state["selected_markets"] = []
-        st.rerun()
-
-# 선택된 시장 삭제 버튼
-if st.session_state["selected_markets"]:
-    mk_cols = st.columns(len(st.session_state["selected_markets"]))
-    for i, mk in enumerate(st.session_state["selected_markets"]):
-        with mk_cols[i]:
-            if st.button(f"❌ {mk}", key=f"del_mk_{i}"):
-                st.session_state["selected_markets"].remove(mk)
-                st.rerun()
-
-# 📈 / 📦 그래프
-colL2, colR2 = st.columns([1.15, 1], gap="small")
-
-with colL2:
-    st.markdown("##### 📈 시장 시계열")
-
-    if st.session_state["selected_markets"]:
-        ts_market = sub_market.groupby(["시장_라벨", "가격등록일자"], as_index=False)[PRICE_COL].mean()
-
-        ts_sel = ts_market[
-            ts_market["시장_라벨"].isin(st.session_state["selected_markets"])
-        ]
-
-        line_market = (
-            alt.Chart(ts_sel)
-            .mark_line()
-            .encode(
-                x=alt.X("가격등록일자:T", axis=alt.Axis(format="%Y-%m"), title=""),
-                y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
-                color="시장_라벨:N",
-            )
-            .properties(height=360)
-        )
-        st.altair_chart(line_market, use_container_width=True)
+            color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="blues"), title="가격"),
+            tooltip=["시도명", "연월", alt.Tooltip(PRICE_COL, format=",")]
+        ).properties(height=300, title="지역별 가격 히트맵")
+        st.altair_chart(heatmap, use_container_width=True)
     else:
-        st.info("위에서 시장을 하나 이상 선택해 주세요.")
+        st.info("좌측 상단에서 지역을 선택해주세요.")
 
-with colR2:
-    st.markdown("##### 📦 시장별 가격 분포")
-
-    if st.session_state["selected_markets"]:
-        sub_box = sub_market[sub_market["시장_라벨"].isin(st.session_state["selected_markets"])]
-
-        box_chart = (
-            alt.Chart(sub_box)
-            .mark_boxplot(size=28)
-            .encode(
-                x=alt.X("시장_라벨:N", title=""),
-                y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
-                color="시장_라벨:N",
-            )
-            .properties(height=360)
-        )
-        st.altair_chart(box_chart, use_container_width=True)
+# [Tab 2] 시장 분석
+with tab2:
+    st.markdown("####  개별 시장 가격 분포")
+    
+    # 시장 필터
+    m_type = st.radio("조사 기준", ["도매", "소매"], horizontal=True, key="t2_radio")
+    sub_m_base = sub[sub["조사구분명"] == m_type]
+    
+    markets = sorted(sub_m_base["시장명"].unique())
+    sel_markets = st.multiselect("비교할 시장 선택 (최대 5개 권장)", markets, default=markets[:3] if len(markets)>2 else markets)
+    
+    sub_m = sub_m_base[sub_m_base["시장명"].isin(sel_markets)]
+    
+    if not sub_m.empty:
+        c1, c2 = st.columns(2)
+        with c1:
+            # 시장별 시계열
+            m_line = alt.Chart(sub_m.groupby(["가격등록일자", "시장명"], as_index=False)[PRICE_COL].mean()).mark_line().encode(
+                x="가격등록일자:T", y=f"{PRICE_COL}:Q", color="시장명:N"
+            ).properties(height=350, title="시장별 가격 흐름")
+            st.altair_chart(m_line, use_container_width=True)
+            
+        with c2:
+            # 시장별 박스플롯
+            m_box = alt.Chart(sub_m).mark_boxplot().encode(
+                x=alt.X("시장명:N", title=None),
+                y=alt.Y(f"{PRICE_COL}:Q", title="가격"),
+                color="시장명:N"
+            ).properties(height=350, title="시장별 가격 분포")
+            st.altair_chart(m_box, use_container_width=True)
     else:
-        st.info("시장 선택 후 박스플롯을 확인할 수 있습니다.")
+        st.info("비교할 시장을 선택해주세요.")
