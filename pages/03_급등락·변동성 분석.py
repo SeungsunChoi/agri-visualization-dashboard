@@ -207,27 +207,6 @@ with colB:
         st.altair_chart(box_chart, use_container_width=True)
 
 
-# ------------------------------
-# (B) 변동성 + Boxplot
-# ------------------------------
-with colB:
-    tab1, tab2 = st.tabs(["변동성", "가격 분포"])
-
-    with tab1:
-        vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
-        vol_chart = alt.Chart(vol_df).mark_bar(color="#004B85").encode(
-            x="연월:O",
-            y="표준편차:Q"
-        ).properties(height=330)
-        st.altair_chart(vol_chart, use_container_width=True)
-
-    with tab2:
-        box_chart = alt.Chart(sub).mark_boxplot(color="#004B85").encode(
-            x="연월:O",
-            y=f"{PRICE_COL}:Q"
-        ).properties(height=330)
-        st.altair_chart(box_chart, use_container_width=True)
-
 
 
 
