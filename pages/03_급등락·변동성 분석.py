@@ -135,8 +135,6 @@ down_p = base.mark_circle(size=60, color="blue").encode(y=PRICE_COL).transform_f
 
 st.altair_chart((line + ma_line + up_p + down_p).properties(height=400), use_container_width=True)
 
-st.markdown("---")
-
 # ============================
 # 6. 월별 분석
 # ============================
