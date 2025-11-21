@@ -173,3 +173,4 @@ with colB:
         ).properties(height=250)
         st.altair_chart(box_chart, use_container_width=True)
 
+
