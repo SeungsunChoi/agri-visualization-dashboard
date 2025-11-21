@@ -88,9 +88,19 @@ tab1, tab2 = st.tabs(["지역별 분석 (시도 단위)", "시장별 분석 (세
 with tab1:
     st.markdown("#### 지역별 가격 비교 및 히트맵")
 
-    # -------------------------------------------
-    # ① 히트맵 먼저 (전체 지역 기준)
-    # -------------------------------------------
+    # -----------------------------------------------------
+    # ① 조사 기준 선택은 히트맵보다 위에서 먼저 정의해야 함
+    # -----------------------------------------------------
+    target_type = st.radio(
+        "조사 기준", 
+        ["도매", "소매"], 
+        horizontal=True, 
+        key="t1_radio_top"
+    )
+
+    # -----------------------------------------------------
+    # ② 히트맵 (전체 지역 기준)
+    # -----------------------------------------------------
     sub_region_whole = sub[sub["조사구분명"] == target_type].copy()
     sub_region_whole["연월"] = sub_region_whole["가격등록일자"].dt.to_period("M").astype(str)
 
@@ -107,31 +117,26 @@ with tab1:
         )
         .properties(height=300, title="지역별 가격 히트맵 (전체 지역 기준)")
     )
-
     st.altair_chart(heatmap, use_container_width=True)
 
     st.markdown("---")
 
-    # -------------------------------------------
-    # ② 히트맵 아래 → 지역 선택 바(라디오 + 멀티셀렉트)
-    # -------------------------------------------
+    # -----------------------------------------------------
+    # ③ 지역 선택 바 (히트맵 아래)
+    # -----------------------------------------------------
     st.markdown("#### 지역별 비교 옵션")
 
-    col_con1, col_con2 = st.columns([1, 3])
+    regions = sorted(sub[sub["조사구분명"] == target_type]["시도명"].unique())
 
-    with col_con1:
-        target_type = st.radio("조사 기준", ["도매", "소매"], horizontal=True, key="t1_radio")
-        regions = sorted(sub[sub["조사구분명"] == target_type]["시도명"].unique())
-        
-        sel_regions = st.multiselect(
-            "비교할 지역 선택",
-            regions,
-            default=regions[:2] if len(regions) > 1 else regions
-        )
+    sel_regions = st.multiselect(
+        "비교할 지역 선택",
+        regions,
+        default=regions[:2] if len(regions) > 1 else regions
+    )
 
-    # -------------------------------------------
-    # ③ 지역 선택 아래 → 시계열 그래프
-    # -------------------------------------------
+    # -----------------------------------------------------
+    # ④ 시계열 그래프 (지역 선택 아래)
+    # -----------------------------------------------------
     sub_r = sub[(sub["조사구분명"] == target_type) & (sub["시도명"].isin(sel_regions))]
 
     if not sub_r.empty:
@@ -147,7 +152,6 @@ with tab1:
             )
             .properties(height=300, title="지역별 가격 추이")
         )
-
         st.altair_chart(chart_r, use_container_width=True)
 
 
