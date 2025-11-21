@@ -212,7 +212,7 @@ with colA:
 # (B) 오른쪽 – 변동성 + Boxplot (탭)
 # ------------------------------
 with colB:
-    tab1, tab2 = st.tabs(["변동성", "가격 분포"])
+    tab1, tab2 = st.tabs(["변동성", "평균 가격 분포"])
 
     # ---------------- 변동성 ----------------
     with tab1:
@@ -224,7 +224,7 @@ with colB:
                 x="연월:O",
                 y="표준편차:Q"
             )
-            .properties(height=380)
+            .properties(height=320)
         )
         st.altair_chart(chartB1, use_container_width=True)
 
