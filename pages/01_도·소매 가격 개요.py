@@ -175,15 +175,24 @@ with col1:
 
 with col2:
     st.subheader(" 가격 분포 (Boxplot)")
-    box_chart = alt.Chart(sub).mark_boxplot(size=50).encode(
-    x=alt.X(
-        "조사구분명:N",
-        title=None,
-        axis=alt.Axis(labelAngle=0)   
-    ),
-    y=alt.Y(f"{PRICE_COL}:Q", title=None),
-    color=alt.Color("조사구분명:N", scale=color_scale, legend=None)
-).properties(height=350)
+
+    box_chart = (
+        alt.Chart(sub)
+        .mark_boxplot(size=50)
+        .encode(
+            x=alt.X(
+                "조사구분명:N",
+                title=None,
+                axis=alt.Axis(labelAngle=0)  
+            ),
+            y=alt.Y(f"{PRICE_COL}:Q", title=None),
+            color=alt.Color("조사구분명:N", scale=color_scale, legend=None)
+        )
+        .properties(height=350)
+    )
+
+    st.altair_chart(box_chart, use_container_width=True)
+
 
 # --------------------------
 # 5. [복구됨] 도·소매 월별 평균 마진 그래프
@@ -210,6 +219,7 @@ if has_wholesale and has_retail:
     ).properties(height=300)
     
     st.altair_chart(margin_bar, use_container_width=True)
+
 
 
 
