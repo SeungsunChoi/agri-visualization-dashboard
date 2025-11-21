@@ -97,26 +97,10 @@ with tab1:
             regions,
             default=regions[:2] if len(regions) > 1 else regions
         )
-    
-    # 시계열은 선택된 지역만
-    sub_r = sub[(sub["조사구분명"] == target_type) & (sub["시도명"].isin(sel_regions))]
-    
-    if not sub_r.empty:
-        chart_r = (
-            alt.Chart(
-                sub_r.groupby(["가격등록일자", "시도명"], as_index=False)[PRICE_COL].mean()
-            )
-            .mark_line()
-            .encode(
-                x="가격등록일자:T",
-                y=f"{PRICE_COL}:Q",
-                color="시도명:N"
-            )
-            .properties(height=300, title="지역별 가격 추이")
-        )
-        st.altair_chart(chart_r, use_container_width=True)
-    
-    # 히트맵은 전체 지역 기준 (변하지 않음)
+
+    # -------------------------------
+    # 1) 히트맵 먼저 표시 (전체 지역 기준)
+    # -------------------------------
     sub_region_whole = sub[sub["조사구분명"] == target_type].copy()
     sub_region_whole["연월"] = sub_region_whole["가격등록일자"].dt.to_period("M").astype(str)
 
@@ -133,7 +117,28 @@ with tab1:
         )
         .properties(height=300, title="지역별 가격 히트맵 (전체 지역 기준)")
     )
+
     st.altair_chart(heatmap, use_container_width=True)
+
+    # -------------------------------
+    # 2) 시계열을 아래로 이동
+    # -------------------------------
+    sub_r = sub[(sub["조사구분명"] == target_type) & (sub["시도명"].isin(sel_regions))]
+    
+    if not sub_r.empty:
+        chart_r = (
+            alt.Chart(
+                sub_r.groupby(["가격등록일자", "시도명"], as_index=False)[PRICE_COL].mean()
+            )
+            .mark_line()
+            .encode(
+                x="가격등록일자:T",
+                y=f"{PRICE_COL}:Q",
+                color="시도명:N"
+            )
+            .properties(height=300, title="지역별 가격 추이")
+        )
+        st.altair_chart(chart_r, use_container_width=True)
 
 # ==========================================
 # TAB 2: 시장 분석
