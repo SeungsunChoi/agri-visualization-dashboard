@@ -165,7 +165,7 @@ with tab2:
 
     markets = sorted(sub_m_whole["시장명"].unique())
     sel_markets = st.multiselect(
-        "비교할 시장 선택 (최대 5개 권장)",
+        "비교할 시장 선택",
         markets,
         default=markets[:3] if len(markets) > 2 else markets
     )
