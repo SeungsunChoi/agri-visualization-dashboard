@@ -142,8 +142,6 @@ m1.metric("분석 기간", f"{window}일")
 m2.metric("🔴 급등", f"{sub['급등'].sum()}회")
 m3.metric("🔵 급락", f"{sub['급락'].sum()}회")
 
-latest_vol = (sub["STD"].iloc[-1] / sub["MA"].iloc[-1] * 100) if sub["MA"].iloc[-1] != 0 else 0
-m4.metric("변동성(CV)", f"{latest_vol:.1f}%")
 
 st.markdown("---")
 
