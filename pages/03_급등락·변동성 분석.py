@@ -2,32 +2,6 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-# ====================================================
-# 🎨 CSS — 제목 크기만 살짝 조정
-# ====================================================
-st.markdown("""
-<style>
-h1 {font-size: 1.55rem !important;}
-h2 {font-size: 1.28rem !important;}
-h3 {font-size: 1.15rem !important;}
-</style>
-""", unsafe_allow_html=True)
-
-# ====================================================
-# 🏷 페이지 제목
-# ====================================================
-st.title("📉 가격 이상탐지 및 안정성 분석 (도매 기준)")
-
-PRICE_COL = "kg당가격"
-
-# ====================================================
-# 0. 데이터 불러오기
-# ====================================================
-DATA_PATH = "data/농수축산_분석가능품목_only_v2_with_kgprice.parquet"
-df = pd.read_parquet(DATA_PATH)import streamlit as st
-import pandas as pd
-import altair as alt
-
 st.set_page_config(page_title="급등락 분석", layout="wide")
 # ==========================================
 # 🎨 [옵션 1] 고급 그라데이션 배경 적용 코드
