@@ -166,7 +166,6 @@ with col2:
 # 5. [복구됨] 도·소매 월별 평균 마진 그래프
 # --------------------------
 if has_wholesale and has_retail:
-    st.markdown("---")
     st.subheader(" 도·소매 월별 평균 마진 추이")
     
     # 마진 데이터 계산
@@ -188,6 +187,7 @@ if has_wholesale and has_retail:
     ).properties(height=300)
     
     st.altair_chart(margin_bar, use_container_width=True)
+
 
 
 
