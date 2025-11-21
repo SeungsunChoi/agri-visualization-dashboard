@@ -163,82 +163,86 @@ st.altair_chart((line + ma_line + up_p + down_p).properties(height=400), use_con
 # ============================
 st.subheader("월별 상세 분석")
 
-# 🔥 상단 탭 (변동성 / 가격 분포)
-tab1, tab2 = st.tabs(["변동성", "가격 분포"])
+# 좌우 2분할
+colA, colB = st.columns([1, 1])
 
-# --------------------------
-# 탭: 변동성 그래프
-# --------------------------
-with tab1:
-    vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
-    vol_chart = (
-        alt.Chart(vol_df)
-        .mark_bar(color="#004B85")
+# -------------------------------------------------------------------
+# (A) 왼쪽: 월별 급등·급락 횟수
+# -------------------------------------------------------------------
+with colA:
+    st.markdown("### 월별 급등·급락 횟수")
+
+    count_df = sub.groupby("연월").agg(
+        급등횟수=("급등", "sum"),
+        급락횟수=("급락", "sum")
+    ).reset_index()
+
+    df_melt = count_df.melt(
+        id_vars="연월",
+        value_vars=["급등횟수", "급락횟수"],
+        var_name="구분",
+        value_name="횟수"
+    )
+
+    df_melt["표시"] = df_melt.apply(
+        lambda x: x["횟수"] if x["구분"] == "급등횟수" else -x["횟수"],
+        axis=1
+    )
+
+    count_chart = (
+        alt.Chart(df_melt)
+        .mark_bar()
         .encode(
             x="연월:O",
-            y="표준편차:Q"
+            y="표시:Q",
+            color=alt.Color(
+                "구분:N",
+                scale=alt.Scale(
+                    domain=["급등횟수", "급락횟수"],
+                    range=["red", "blue"]
+                )
+            ),
+            tooltip=["연월", "구분", "횟수"]
         )
-        .properties(height=300)
+        .properties(height=350)
     )
-    st.altair_chart(vol_chart, use_container_width=True)
 
-# --------------------------
-# 탭: 가격 분포 (Boxplot)
-# --------------------------
-with tab2:
-    box_chart = (
-        alt.Chart(sub)
-        .mark_boxplot(color="#004B85")
-        .encode(
-            x="연월:O",
-            y=f"{PRICE_COL}:Q"
-        )
-        .properties(height=300)
-    )
-    st.altair_chart(box_chart, use_container_width=True)
+    st.altair_chart(count_chart, use_container_width=True)
 
-# ============================
-# 🔥 바로 아래: 급등락 개수 그래프 (붙여서!)
-# ============================
+# -------------------------------------------------------------------
+# (B) 오른쪽: 변동성 + Boxplot (탭)
+# -------------------------------------------------------------------
+with colB:
+    st.markdown("### 변동성 / 가격 분포")
 
-st.markdown("### 월별 급등·급락 횟수")
+    tab1, tab2 = st.tabs(["변동성", "가격 분포"])
 
-count_df = sub.groupby("연월").agg(
-    급등횟수=("급등", "sum"),
-    급락횟수=("급락", "sum")
-).reset_index()
-
-df_melt = count_df.melt(
-    id_vars="연월",
-    value_vars=["급등횟수", "급락횟수"],
-    var_name="구분",
-    value_name="횟수"
-)
-
-df_melt["표시"] = df_melt.apply(
-    lambda x: x["횟수"] if x["구분"] == "급등횟수" else -x["횟수"],
-    axis=1
-)
-
-count_chart = (
-    alt.Chart(df_melt)
-    .mark_bar()
-    .encode(
-        x="연월:O",
-        y="표시:Q",
-        color=alt.Color(
-            "구분:N",
-            scale=alt.Scale(
-                domain=["급등횟수", "급락횟수"],
-                range=["red", "blue"]
+    # 변동성
+    with tab1:
+        vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
+        vol_chart = (
+            alt.Chart(vol_df)
+            .mark_bar(color="#004B85")
+            .encode(
+                x="연월:O",
+                y="표준편차:Q"
             )
-        ),
-        tooltip=["연월", "구분", "횟수"]
-    )
-    .properties(height=300)
-)
+            .properties(height=350)
+        )
+        st.altair_chart(vol_chart, use_container_width=True)
 
-st.altair_chart(count_chart, use_container_width=True)
+    # 가격 분포 Boxplot
+    with tab2:
+        box_chart = (
+            alt.Chart(sub)
+            .mark_boxplot(color="#004B85")
+            .encode(
+                x="연월:O",
+                y=f"{PRICE_COL}:Q"
+            )
+            .properties(height=350)
+        )
+        st.altair_chart(box_chart, use_container_width=True)
 
 
 
