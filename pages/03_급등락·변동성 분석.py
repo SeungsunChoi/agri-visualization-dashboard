@@ -45,9 +45,10 @@ df["가격등록일자"] = pd.to_datetime(df["가격등록일자"])
 df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 
 # ============================
-# 🔥 (A) 탐지 민감도 설정 — 본문 상단으로 이동!
+# 🔥 (A) 본문 상단: 탐지 민감도 설정
 # ============================
 st.markdown("### 🔧 탐지 민감도 설정")
+
 window = st.radio(
     "이동평균 기간(Window)",
     [7, 14, 30],
@@ -58,7 +59,7 @@ window = st.radio(
 st.markdown("---")
 
 # ============================
-# 🔥 (B) 사이드바 — 분석기간 + 품종 + 등급
+# 🔥 (B) 사이드바: 분석기간 + 품종 + 등급
 # ============================
 with st.sidebar:
     st.header("📆 분석 기간 설정")
@@ -74,14 +75,16 @@ with st.sidebar:
         format="YYYY-MM-DD"
     )
 
+    # 기간 필터 적용
     df = df[
         (df["가격등록일자"] >= pd.to_datetime(selected_range[0])) &
         (df["가격등록일자"] <= pd.to_datetime(selected_range[1])) &
         (df["품목명"] == item)
     ]
 
-    st.markdown("### 데이터 필터")
-    df_w = df[df["조사구분명"] == "도매"].copy()
+    st.markdown("### 🔽 데이터 필터")
+
+    df_w = df[df["조사구분명"] == "도매"]
 
     p_list = sorted(df_w["품종명"].dropna().unique())
     sel_p = st.selectbox("품종", p_list)
@@ -90,13 +93,17 @@ with st.sidebar:
     sel_g = st.selectbox("등급", g_list)
 
 # ============================
-# 필터 적용
+# 2. 분석 데이터 준비
 # ============================
 sub = df_w[(df_w["품종명"] == sel_p) & (df_w["산물등급명"] == sel_g)].copy()
 sub = sub.sort_values("가격등록일자")
 
+if len(sub) < window:
+    st.error(f"데이터가 너무 적어 ({len(sub)}개) 이동평균({window}일)을 계산할 수 없습니다.")
+    st.stop()
+
 # ============================
-# 2. 급등락 계산
+# 3. 볼린저 밴드 기반 급등락 탐지
 # ============================
 sub["MA"] = sub[PRICE_COL].rolling(window).mean()
 sub["STD"] = sub[PRICE_COL].rolling(window).std()
@@ -108,7 +115,7 @@ sub["급락"] = sub[PRICE_COL] < sub["Lower"]
 sub["연월"] = sub["가격등록일자"].dt.to_period("M").astype(str)
 
 # ============================
-# 3. Metric
+# 4. 핵심 지표
 # ============================
 st.markdown("### 📌 핵심 요약 지표")
 
@@ -116,12 +123,13 @@ m1, m2, m3, m4 = st.columns(4)
 m1.metric("분석 기간", f"{window}일 이동평균")
 m2.metric("🔴 총 급등 횟수", f"{sub['급등'].sum()}회")
 m3.metric("🔵 총 급락 횟수", f"{sub['급락'].sum()}회")
-m4.metric("변동성(CV)", f"{(sub['STD'].iloc[-1] / sub['MA'].iloc[-1] * 100):.1f}%")
+latest_vol = (sub["STD"].iloc[-1] / sub["MA"].iloc[-1] * 100) if sub["MA"].iloc[-1] != 0 else 0
+m4.metric("변동성(CV)", f"{latest_vol:.1f}%")
 
 st.markdown("---")
 
 # ============================
-# 4. 시계열 그래프
+# 5. 이상치 탐지 시계열
 # ============================
 st.subheader("📈 이상치 탐지 시계열")
 
@@ -133,14 +141,16 @@ down_p = base.mark_circle(size=60, color="blue").encode(y=PRICE_COL).transform_f
 
 st.altair_chart((line + ma_line + up_p + down_p).properties(height=400), use_container_width=True)
 
-# ============================
-# 5. 월별 분석
-# ============================
 st.markdown("---")
+
+# ============================
+# 6. 월별 분석
+# ============================
 st.subheader("📊 월별 상세 분석")
 
 colA, colB = st.columns(2)
 
+# (A) 월별 급등·급락 빈도
 with colA:
     count_df = sub.groupby("연월").agg(급등횟수=("급등","sum"), 급락횟수=("급락","sum")).reset_index()
     df_melt = count_df.melt(id_vars="연월", value_vars=["급등횟수","급락횟수"], var_name="구분", value_name="횟수")
@@ -155,6 +165,7 @@ with colA:
 
     st.altair_chart(chart, use_container_width=True)
 
+# (B) 변동성 + Boxplot
 with colB:
     tab1, tab2 = st.tabs(["변동성", "가격 분포"])
 
@@ -172,5 +183,6 @@ with colB:
             y=f"{PRICE_COL}:Q"
         ).properties(height=250)
         st.altair_chart(box_chart, use_container_width=True)
+
 
 
