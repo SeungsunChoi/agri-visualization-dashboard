@@ -224,7 +224,7 @@ with colB:
                 x="연월:O",
                 y="표준편차:Q"
             )
-            .properties(height=330)
+            .properties(height=328)
         )
         st.altair_chart(chartB1, use_container_width=True)
 
@@ -237,7 +237,7 @@ with colB:
                 x="연월:O",
                 y=f"{PRICE_COL}:Q"
             )
-            .properties(height=380)
+            .properties(height=328)
         )
         st.altair_chart(chartB2, use_container_width=True)
 
