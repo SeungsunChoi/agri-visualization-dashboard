@@ -51,7 +51,7 @@ with st.sidebar:
     
     min_d, max_d = df["가격등록일자"].min(), df["가격등록일자"].max()
     dates = st.slider(
-        "기간 선택",
+        "조회 기간",
         min_value=min_d.date(),
         max_value=max_d.date(),
         value=(min_d.date(), max_d.date())
