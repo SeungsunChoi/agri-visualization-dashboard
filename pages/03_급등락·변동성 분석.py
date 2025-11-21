@@ -5,27 +5,48 @@ import altair as alt
 st.set_page_config(page_title="급등락 분석", layout="wide")
 
 # ==========================================
-# 🎨 그라데이션 배경
+# 🎨 CSS: 전역 레이아웃 & Tabs 패딩 제거
 # ==========================================
 st.markdown("""
 <style>
+
 .stApp {
     background: rgb(20,30,48);
     background: linear-gradient(90deg, rgba(20,30,48,1) 0%, rgba(36,59,85,1) 50%, rgba(28,69,50,1) 100%);
     background-attachment: fixed;
 }
+
+/* 사이드바 */
 [data-testid="stSidebar"] {
     background-color: rgba(20, 30, 40, 0.8);
 }
+
+/* 텍스트 그림자 */
 [data-testid="stMetricValue"], h1, h2, h3 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
-div[data-testid="stVerticalBlock"] {
-    padding-top: 0px !important;
+
+/* ====== 핵심: columns 내부 패딩 제거 ====== */
+div[data-testid="column"] > div:first-child {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
+
+/* ====== tabs 기본 padding 제거 ====== */
 div[data-testid="stTabs"] {
-    margin-top: -20px !important;
-    padding-top: 0px !important;
+    margin-top: -10px !important;
+    padding-top: 0 !important;
+}
+
+/* tabs 버튼 패딩 조정 */
+div[data-testid="stTabs"] button {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+}
+
+/* Streamlit 기본 구분선 제거 */
+div[data-testid="stDecoration"]{
+    display:none !important;
 }
 
 </style>
@@ -53,7 +74,7 @@ df["가격등록일자"] = pd.to_datetime(df["가격등록일자"])
 df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 
 # ============================
-# 🔥 (A) 사이드바: 분석기간 + 탐지민감도 + 품종 + 등급
+# 🔥 (A) Sidebar
 # ============================
 with st.sidebar:
     st.header("분석 옵션 설정")
@@ -69,7 +90,6 @@ with st.sidebar:
         format="YYYY-MM-DD"
     )
 
-    # 기간 필터 적용
     df = df[
         (df["가격등록일자"] >= pd.to_datetime(selected_range[0])) &
         (df["가격등록일자"] <= pd.to_datetime(selected_range[1])) &
@@ -77,16 +97,11 @@ with st.sidebar:
     ]
 
     st.markdown("### 탐지 민감도(Window)")
-    window = st.radio(
-        "이동평균 기간",
-        [7, 14, 30],
-        index=0
-    )
+    window = st.radio("이동평균 기간", [7, 14, 30], index=0)
 
     st.markdown("### 데이터 필터")
 
     df_w = df[df["조사구분명"] == "도매"]
-
     p_list = sorted(df_w["품종명"].dropna().unique())
     sel_p = st.selectbox("품종", p_list)
 
@@ -100,11 +115,11 @@ sub = df_w[(df_w["품종명"] == sel_p) & (df_w["산물등급명"] == sel_g)].co
 sub = sub.sort_values("가격등록일자")
 
 if len(sub) < window:
-    st.error(f"데이터가 너무 적어 ({len(sub)}개) 이동평균({window}일)을 계산할 수 없습니다.")
+    st.error(f"데이터가 너무 적어 이동평균({window}일) 계산 불가.")
     st.stop()
 
 # ============================
-# 3. 볼린저 밴드 기반 급등락 탐지
+# 3. 볼린저 밴드 탐지
 # ============================
 sub["MA"] = sub[PRICE_COL].rolling(window).mean()
 sub["STD"] = sub[PRICE_COL].rolling(window).std()
@@ -121,7 +136,7 @@ sub["연월"] = sub["가격등록일자"].dt.to_period("M").astype(str)
 st.markdown("### 핵심 요약 지표")
 
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("분석 기간", f"{window}일 이동평균")
+m1.metric("분석 기간", f"{window}일")
 m2.metric("🔴 총 급등 횟수", f"{sub['급등'].sum()}회")
 m3.metric("🔵 총 급락 횟수", f"{sub['급락'].sum()}회")
 
@@ -144,13 +159,15 @@ down_p = base.mark_circle(size=60, color="blue").encode(y=PRICE_COL).transform_f
 st.altair_chart((line + ma_line + up_p + down_p).properties(height=400), use_container_width=True)
 
 # ============================
-# 6. 월별 분석
+# 6. 월별 분석 (높이 완전 정렬)
 # ============================
 st.subheader("월별 상세 분석")
 
-colA, colB = st.columns(2)
+colA, colB = st.columns(2, vertical_alignment="top")
 
-# (A) 월별 급등·급락 빈도
+# ------------------------------
+# (A) 월별 급등·급락
+# ------------------------------
 with colA:
     count_df = sub.groupby("연월").agg(급등횟수=("급등","sum"), 급락횟수=("급락","sum")).reset_index()
     df_melt = count_df.melt(id_vars="연월", value_vars=["급등횟수","급락횟수"], var_name="구분", value_name="횟수")
@@ -159,31 +176,32 @@ with colA:
     chart = alt.Chart(df_melt).mark_bar().encode(
         x="연월:O",
         y="표시:Q",
-        color=alt.Color("구분:N", scale=alt.Scale(domain=["급등횟수","급락횟수"], range=["red","blue"])),
+        color=alt.Color("구분:N",
+            scale=alt.Scale(domain=["급등횟수","급락횟수"], range=["red","blue"])),
         tooltip=["연월","구분","횟수"]
-    ).properties(height=300)   # ← 왼쪽 기준 높이 300
+    ).properties(height=330)
 
     st.altair_chart(chart, use_container_width=True)
 
+# ------------------------------
 # (B) 변동성 + Boxplot
+# ------------------------------
 with colB:
     tab1, tab2 = st.tabs(["변동성", "가격 분포"])
 
-    # 📌 변동성 탭
     with tab1:
         vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
         vol_chart = alt.Chart(vol_df).mark_bar(color="#004B85").encode(
             x="연월:O",
             y="표준편차:Q"
-        ).properties(height=300)   # ← 300으로 통일
+        ).properties(height=330)
         st.altair_chart(vol_chart, use_container_width=True)
 
-    # 📌 가격 분포 탭
     with tab2:
         box_chart = alt.Chart(sub).mark_boxplot(color="#004B85").encode(
             x="연월:O",
             y=f"{PRICE_COL}:Q"
-        ).properties(height=300)   # ← 300으로 통일
+        ).properties(height=330)
         st.altair_chart(box_chart, use_container_width=True)
 
 
