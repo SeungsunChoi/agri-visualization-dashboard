@@ -113,7 +113,11 @@ ma_line = base.mark_line(color="#004B85", strokeDash=[5, 5]).encode(y="MA", tool
 up_points = base.mark_circle(size=60, color="red").encode(y=PRICE_COL, tooltip=[PRICE_COL]).transform_filter(alt.datum.급등 == True)
 down_points = base.mark_circle(size=60, color="blue").encode(y=PRICE_COL, tooltip=[PRICE_COL]).transform_filter(alt.datum.급락 == True)
 
-st.altair_chart((line + ma_line + up_points + down_points).properties(height=400).interactive(), use_container_width=True)
+st.altair_chart(
+    (line + ma_line + up_points + down_points).properties(height=400),
+    use_container_width=True
+)
+
 
 # --------------------------
 # 2. [복구됨] 하단 분석 그래프들
