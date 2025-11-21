@@ -68,7 +68,7 @@ with st.sidebar:
         (df["품목명"] == item)
     ]
 
-    st.markdown("### 🔧 탐지 민감도(Window)")
+    st.markdown("### 탐지 민감도(Window)")
     window = st.radio(
         "이동평균 기간",
         [7, 14, 30],
@@ -168,7 +168,7 @@ with colB:
         vol_chart = alt.Chart(vol_df).mark_bar(color="#004B85").encode(
             x="연월:O",
             y="표준편차:Q"
-        ).properties(height=250)
+        ).properties(height=2)
         st.altair_chart(vol_chart, use_container_width=True)
 
     with tab2:
