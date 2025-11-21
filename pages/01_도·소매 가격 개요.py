@@ -145,12 +145,12 @@ col1, col2 = st.columns([1.2, 0.8])
 
 with col1:
     st.subheader(" 일자별 가격 추이")
-    line_chart = alt.Chart(sub_grouped).mark_line(point=True).encode(
+    line_chart = alt.Chart(sub_grouped).mark_line().encode(
         x=alt.X("가격등록일자:T", title="날짜", axis=alt.Axis(format="%y-%m-%d")),
         y=alt.Y(f"{PRICE_COL}:Q", title="가격(원/kg)"),
         color=alt.Color("조사구분명:N", scale=color_scale, title="구분"),
         tooltip=["가격등록일자", "조사구분명", alt.Tooltip(PRICE_COL, format=",")]
-    ).properties(height=350).interactive()
+    ).properties(height=350)
     st.altair_chart(line_chart, use_container_width=True)
 
 with col2:
@@ -188,6 +188,7 @@ if has_wholesale and has_retail:
     ).properties(height=300)
     
     st.altair_chart(margin_bar, use_container_width=True)
+
 
 
 
