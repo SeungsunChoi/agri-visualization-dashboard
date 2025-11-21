@@ -153,7 +153,7 @@ with colA:
         y="표시:Q",
         color=alt.Color("구분:N", scale=alt.Scale(domain=["급등횟수","급락횟수"], range=["red","blue"])),
         tooltip=["연월","구분","횟수"]
-    ).properties(height=300)
+    ).properties(height=300)   # ← 왼쪽 기준 높이 300
 
     st.altair_chart(chart, use_container_width=True)
 
@@ -161,20 +161,23 @@ with colA:
 with colB:
     tab1, tab2 = st.tabs(["변동성", "가격 분포"])
 
+    # 📌 변동성 탭
     with tab1:
         vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
         vol_chart = alt.Chart(vol_df).mark_bar(color="#004B85").encode(
             x="연월:O",
             y="표준편차:Q"
-        ).properties(height=2)
+        ).properties(height=300)   # ← 300으로 통일
         st.altair_chart(vol_chart, use_container_width=True)
 
+    # 📌 가격 분포 탭
     with tab2:
         box_chart = alt.Chart(sub).mark_boxplot(color="#004B85").encode(
             x="연월:O",
             y=f"{PRICE_COL}:Q"
-        ).properties(height=250)
+        ).properties(height=300)   # ← 300으로 통일
         st.altair_chart(box_chart, use_container_width=True)
+
 
 
 
