@@ -8,6 +8,7 @@ st.set_page_config(
     page_title="농수축산물 가격 분석",
     layout="wide"
 )
+
 # ==========================================
 #  [옵션 1] 고급 그라데이션 배경 적용 코드
 # ==========================================
@@ -25,9 +26,9 @@ st.markdown("""
     background-color: rgba(20, 30, 40, 0.8);
 }
 
-/* 메트릭/글씨 잘 보이게 배경 박스 추가 (선택사항) */
+/* 메트릭/글씨 잘 보이게 글자 그림자 */
 [data-testid="stMetricValue"], h1, h2, h3 {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* 글자 그림자 */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -40,7 +41,7 @@ DATA_PATH = "data/농수축산_분석가능품목_only_v2_with_kgprice.parquet"
 @st.cache_data
 def load_items():
     df = pd.read_parquet(DATA_PATH)
-    df = df[df["조사구분명"] != "친환경"].copy() # 친환경 제외
+    df = df[df["조사구분명"] != "친환경"].copy()  # 친환경 제외
     items = sorted(df['품목명'].dropna().unique())
     return df, items
 
@@ -73,12 +74,33 @@ if "selected_item" not in st.session_state:
     st.session_state["selected_item"] = None
 
 # --------------------------
-#  UI 구성
+#  UI 구성 (제목 + 버튼 스타일)
 # --------------------------
 st.markdown("""
     <style>
-    .main-header {font-size: 2.5rem; font-weight: 700; color: #004B85; text-align: center;}
-    .sub-header {font-size: 1.2rem; color: #666; text-align: center; margin-bottom: 30px;}
+    /* ✅ 왕제목 색상을 흰색으로 변경 */
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #FFFFFF;              /* 여기! 원래 #004B85 → 흰색 */
+        text-align: center;
+    }
+
+    .sub-header {
+        font-size: 1.2rem;
+        color: #CCCCCC;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    /* ✅ 모든 버튼 크기/글씨 크게 */
+    .stButton > button {
+        padding-top: 0.85rem;
+        padding-bottom: 0.85rem;
+        font-size: 1.05rem;          /* 글씨 살짝 키움 */
+        font-weight: 600;
+        border-radius: 999px;        /* 알약 모양(원형에 가깝게) – 원하면 지워도 됨 */
+    }
     </style>
     <div class="main-header"> 농수축산물 가격 동향 대시보드</div>
     <div class="sub-header">분석할 품목을 선택하면 상세 분석 페이지로 이동합니다.</div>
@@ -87,7 +109,7 @@ st.markdown("""
 st.markdown("---")
 
 # 품목 선택 버튼 그리드
-cols = st.columns(4) # 4열로 더 넓게 배치
+cols = st.columns(4)  # 4열로 더 넓게 배치
 for idx, name in enumerate(items):
     icon = get_icon(name)
     with cols[idx % 4]:
@@ -105,6 +127,8 @@ if st.session_state["selected_item"]:
         st.switch_page("pages/01_도·소매 가격 개요.py")
 else:
     st.info(" 위에서 분석할 품목을 먼저 선택해주세요.")
+
+
 
 
 
