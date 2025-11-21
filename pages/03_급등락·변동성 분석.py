@@ -138,7 +138,7 @@ sub["연월"] = sub["가격등록일자"].dt.to_period("M").astype(str)
 st.markdown("###  핵심 요약 지표")
 
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("분석 기간", f"{window}일")
+m1.metric("이동 평균 기간", f"{window}일")
 m2.metric("🔴 급등", f"{sub['급등'].sum()}회")
 m3.metric("🔵 급락", f"{sub['급락'].sum()}회")
 
