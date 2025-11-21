@@ -49,7 +49,6 @@ df["가격등록일자"] = pd.to_datetime(df["가격등록일자"])
 with st.sidebar:
     st.header("분석 옵션 설정")
     
-    # 기간 필터
     min_d, max_d = df["가격등록일자"].min(), df["가격등록일자"].max()
     dates = st.slider(
         "기간 선택",
@@ -63,15 +62,12 @@ with st.sidebar:
         (df["가격등록일자"] <= pd.to_datetime(dates[1]))
     ]
     
-    # 품종
     p_list = sorted(filtered_date["품종명"].dropna().unique())
     sel_p = st.selectbox("품종", p_list)
     
-    # 등급
     g_list = sorted(filtered_date[filtered_date["품종명"] == sel_p]["산물등급명"].dropna().unique())
     sel_g = st.selectbox("등급", g_list)
     
-    # 최종 데이터 (기간·품종·등급까지 필터링)
     sub = filtered_date[
         (filtered_date["품종명"] == sel_p) &
         (filtered_date["산물등급명"] == sel_g)
@@ -102,10 +98,10 @@ with tab1:
             default=regions[:2] if len(regions) > 1 else regions
         )
     
+    # 시계열은 선택된 지역만
     sub_r = sub[(sub["조사구분명"] == target_type) & (sub["시도명"].isin(sel_regions))]
     
     if not sub_r.empty:
-        # 시계열
         chart_r = (
             alt.Chart(
                 sub_r.groupby(["가격등록일자", "시도명"], as_index=False)[PRICE_COL].mean()
@@ -119,36 +115,34 @@ with tab1:
             .properties(height=300, title="지역별 가격 추이")
         )
         st.altair_chart(chart_r, use_container_width=True)
+    
+    # 히트맵은 전체 지역 기준 (변하지 않음)
+    sub_region_whole = sub[sub["조사구분명"] == target_type].copy()
+    sub_region_whole["연월"] = sub_region_whole["가격등록일자"].dt.to_period("M").astype(str)
+
+    heat_data = sub_region_whole.groupby(["시도명", "연월"], as_index=False)[PRICE_COL].mean()
         
-        # 히트맵
-        sub_r["연월"] = sub_r["가격등록일자"].dt.to_period("M").astype(str)
-        heat_data = sub_r.groupby(["시도명", "연월"], as_index=False)[PRICE_COL].mean()
-        
-        heatmap = (
-            alt.Chart(heat_data)
-            .mark_rect()
-            .encode(
-                x=alt.X("연월:O", title=""),
-                y=alt.Y("시도명:N", title=""),
-                color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="blues")),
-                tooltip=["시도명", "연월", alt.Tooltip(PRICE_COL, format=",")]
-            )
-            .properties(height=300, title="지역별 가격 히트맵")
+    heatmap = (
+        alt.Chart(heat_data)
+        .mark_rect()
+        .encode(
+            x=alt.X("연월:O", title=""),
+            y=alt.Y("시도명:N", title=""),
+            color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="blues")),
+            tooltip=["시도명", "연월", alt.Tooltip(PRICE_COL, format=",")]
         )
-        st.altair_chart(heatmap, use_container_width=True)
-    else:
-        st.info("좌측에서 지역을 선택해주세요.")
+        .properties(height=300, title="지역별 가격 히트맵 (전체 지역 기준)")
+    )
+    st.altair_chart(heatmap, use_container_width=True)
 
 # ==========================================
-# TAB 2: 시장 분석 (히트맵은 시장 선택과 무관하게 전체 시장 유지)
+# TAB 2: 시장 분석
 # ==========================================
 with tab2:
     st.markdown("#### 시장별 월별 가격 히트맵 (전체 시장 기준)")
 
-    # 도매/소매 기준 선택
     m_type = st.radio("조사 기준", ["도매", "소매"], horizontal=True, key="t2_radio")
 
-    # 히트맵용 전체 시장 데이터
     sub_m_whole = sub[sub["조사구분명"] == m_type].copy()
     sub_m_whole["연월"] = sub_m_whole["가격등록일자"].dt.to_period("M").astype(str)
 
@@ -165,12 +159,10 @@ with tab2:
         )
         .properties(height=350)
     )
-    
     st.altair_chart(heatmap2, use_container_width=True)
 
     st.markdown("#### 개별 시장 가격 분포")
 
-    # 시장 선택 리스트
     markets = sorted(sub_m_whole["시장명"].unique())
     sel_markets = st.multiselect(
         "비교할 시장 선택 (최대 5개 권장)",
@@ -178,13 +170,11 @@ with tab2:
         default=markets[:3] if len(markets) > 2 else markets
     )
 
-    # 선택 시장 데이터
     sub_m = sub_m_whole[sub_m_whole["시장명"].isin(sel_markets)]
     
     if not sub_m.empty:
         c1, c2 = st.columns(2)
         
-        # 시계열
         with c1:
             m_line = (
                 alt.Chart(
@@ -200,13 +190,12 @@ with tab2:
             )
             st.altair_chart(m_line, use_container_width=True)
         
-        # 박스플롯
         with c2:
             m_box = (
                 alt.Chart(sub_m)
                 .mark_boxplot()
                 .encode(
-                    x=alt.X("시장명:N", title=None),
+                    x=alt.X("시장명:N", title=""),
                     y=alt.Y(f"{PRICE_COL}:Q", title="가격"),
                     color="시장명:N"
                 )
@@ -217,26 +206,4 @@ with tab2:
     else:
         st.info("비교할 시장을 선택해주세요.")
 
-    
-    # ==========================================
-    # 히트맵 (시장 선택과 무관하게 전체 시장 데이터로 고정)
-    # ==========================================
-    st.markdown("#### 시장별 월별 가격 히트맵 (전체 시장 기준)")
-    
-    sub_m_whole["연월"] = sub_m_whole["가격등록일자"].dt.to_period("M").astype(str)
-    heat_m = sub_m_whole.groupby(["시장명", "연월"], as_index=False)[PRICE_COL].mean()
-    
-    heatmap2 = (
-        alt.Chart(heat_m)
-        .mark_rect()
-        .encode(
-            x=alt.X("연월:O", title=""),
-            y=alt.Y("시장명:N", title=""),
-            color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="greens")),
-            tooltip=["시장명", "연월", alt.Tooltip(PRICE_COL, format=",")]
-        )
-        .properties(height=350)
-    )
-    
-    st.altair_chart(heatmap2, use_container_width=True)
 
