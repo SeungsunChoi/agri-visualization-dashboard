@@ -65,7 +65,7 @@ if "selected_item" not in st.session_state or not st.session_state["selected_ite
 
 item = st.session_state["selected_item"]
 
-st.title(f"📌 {item} 가격 급등락(이상탐지) 분석")
+st.title(f" {item} 가격 급등락(이상탐지) 분석")
 
 # =========================================================
 # 1. 데이터 로드
@@ -80,7 +80,7 @@ df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 # 2. Sidebar 옵션
 # =========================================================
 with st.sidebar:
-    st.header("🔧 분석 옵션")
+    st.header(" 분석 옵션")
 
     min_date = df["가격등록일자"].min().date()
     max_date = df["가격등록일자"].max().date()
@@ -99,10 +99,10 @@ with st.sidebar:
         (df["품목명"] == item)
     ]
 
-    st.markdown("### 🔥 탐지 민감도")
+    st.markdown("###  탐지 민감도")
     window = st.radio("이동평균 기간", [7, 14, 30], index=0)
 
-    st.markdown("### 📑 데이터 필터")
+    st.markdown("###  데이터 필터")
     df_w = df[df["조사구분명"] == "도매"]
 
     p_list = sorted(df_w["품종명"].dropna().unique())
@@ -135,7 +135,7 @@ sub["연월"] = sub["가격등록일자"].dt.to_period("M").astype(str)
 # =========================================================
 # 4. 핵심 요약 지표
 # =========================================================
-st.markdown("### 📈 핵심 요약 지표")
+st.markdown("###  핵심 요약 지표")
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("분석 기간", f"{window}일")
@@ -148,7 +148,7 @@ st.markdown("---")
 # =========================================================
 # 5. 이상치 탐지 시계열
 # =========================================================
-st.subheader("📉 이상치 탐지 시계열")
+st.subheader(" 이상치 탐지 시계열")
 
 base = alt.Chart(sub).encode(x="가격등록일자:T")
 line = base.mark_line(color="gray", opacity=0.5).encode(y=PRICE_COL)
@@ -238,8 +238,3 @@ with colB:
             .properties(height=328)
         )
         st.altair_chart(chartB2, use_container_width=True)
-
-
-
-
-
