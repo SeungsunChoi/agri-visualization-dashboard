@@ -8,31 +8,51 @@ st.set_page_config(page_title="도·소매 가격 개요", layout="wide")
 # ==========================================
 st.markdown("""
 <style>
-/* 전체 배경 (App View) */
+/* ========================================
+   1. 전체 배경 (Deep Green 그라데이션)
+   ======================================== */
 .stApp {
     background: rgb(20,30,48);
     background: linear-gradient(90deg, rgba(20,30,48,1) 0%, rgba(36,59,85,1) 50%, rgba(28,69,50,1) 100%);
-    background-attachment: fixed; /* 스크롤해도 배경 고정 */
+    background-attachment: fixed; /* 스크롤 해도 배경 고정 */
+    color: white; /* 기본 글자색 흰색 */
 }
 
-/* 사이드바 배경 (약간 투명하게) */
+/* 사이드바 배경 (약간 투명하게 어울리도록) */
 [data-testid="stSidebar"] {
     background-color: rgba(20, 30, 40, 0.8);
 }
 
-/* 메트릭/글씨 잘 보이게 배경 박스 추가 (선택사항) */
-[data-testid="stMetricValue"], h1, h2, h3 {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* 글자 그림자 */
-}
-</style>
-""", unsafe_allow_html=True)
+/* ========================================
+   2. 메트릭(숫자 카드) 디자인 - 방법 B (유리창 효과)
+   ======================================== */
 
-#  CSS: 메트릭 카드 스타일링
-st.markdown("""
-<style>
+/* 메트릭 전체 박스에 '반투명 유리' 효과 주기 */
+div[data-testid="stMetric"] {
+    background-color: rgba(255, 255, 255, 0.15); /* 흰색 15% 투명도 */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* 얇은 테두리 */
+    padding: 15px;
+    border-radius: 15px; /* 둥근 모서리 */
+    backdrop-filter: blur(10px); /* 배경 흐림 효과 (고급!) */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* 입체감 그림자 */
+}
+
+/* 숫자 색상 (밝은 스카이 블루로 변경하여 잘 보이게) */
 [data-testid="stMetricValue"] {
     font-size: 1.8rem !important;
-    color: #004B85;
+    color: #1E88E5 !important; /* Light Sky Blue */
+    font-weight: 700 !important;
+}
+
+/* 라벨(제목) 색상 */
+[data-testid="stMetricLabel"] {
+    color: #FFFFFF !important; /* 흰색 */
+    font-weight: 500 !important;
+}
+
+/* 하단 델타 값(상승/하락) 아이콘 색상 보정 */
+[data-testid="stMetricDelta"] svg {
+    fill: currentColor;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -121,14 +141,14 @@ with m1:
         avg_w = pivot["도매"].mean()
         last_w = pivot["도매"].iloc[-1]
         delta_w = last_w - avg_w 
-        st.metric("평균 도매가격", f"{avg_w:,.0f}원", delta=f"{delta_w:,.0f}원 (평균대비)", delta_color="inverse")
+        st.metric("평균 도매가격", f"{avg_w:,.0f}원", delta=f"{delta_w:,.0f}원 (평균대비 최근 가격)", delta_color="inverse")
 
 with m2:
     if has_retail:
         avg_r = pivot["소매"].mean()
         last_r = pivot["소매"].iloc[-1]
         delta_r = last_r - avg_r
-        st.metric("평균 소매가격", f"{avg_r:,.0f}원", delta=f"{delta_r:,.0f}원 (평균대비)", delta_color="inverse")
+        st.metric("평균 소매가격", f"{avg_r:,.0f}원", delta=f"{delta_r:,.0f}원 (평균대비 최근 가격)", delta_color="inverse")
 
 with m3:
     if has_wholesale and has_retail:
@@ -187,7 +207,6 @@ if has_wholesale and has_retail:
     ).properties(height=300)
     
     st.altair_chart(margin_bar, use_container_width=True)
-
 
 
 
