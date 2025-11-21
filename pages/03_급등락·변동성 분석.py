@@ -163,7 +163,7 @@ st.altair_chart((line + ma_line + up_p + down_p).properties(height=380), use_con
 # =========================================================
 # 6. 월별 상세 분석 (좌/우 2분할)
 # =========================================================
-st.subheader("📊 월별 상세 분석")
+st.subheader("월별 상세 분석")
 
 colA, colB = st.columns([1, 1])  # 높이 동일하게 유지
 
@@ -237,7 +237,7 @@ with colB:
                 x="연월:O",
                 y=f"{PRICE_COL}:Q"
             )
-            .properties(height=380)
+            .properties(height=260)
         )
         st.altair_chart(chartB2, use_container_width=True)
 
