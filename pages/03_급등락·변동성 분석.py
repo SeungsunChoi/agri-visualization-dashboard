@@ -45,21 +45,7 @@ df["가격등록일자"] = pd.to_datetime(df["가격등록일자"])
 df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 
 # ============================
-# 🔥 (A) 본문 상단: 탐지 민감도 설정
-# ============================
-st.markdown("### 🔧 탐지 민감도 설정")
-
-window = st.radio(
-    "이동평균 기간(Window)",
-    [7, 14, 30],
-    horizontal=True,
-    index=0
-)
-
-st.markdown("---")
-
-# ============================
-# 🔥 (B) 사이드바: 분석기간 + 품종 + 등급
+# 🔥 (A) 사이드바: 분석기간 + 탐지민감도 + 품종 + 등급
 # ============================
 with st.sidebar:
     st.header("📆 분석 기간 설정")
@@ -81,6 +67,13 @@ with st.sidebar:
         (df["가격등록일자"] <= pd.to_datetime(selected_range[1])) &
         (df["품목명"] == item)
     ]
+
+    st.markdown("### 🔧 탐지 민감도(Window)")
+    window = st.radio(
+        "이동평균 기간",
+        [7, 14, 30],
+        index=0
+    )
 
     st.markdown("### 🔽 데이터 필터")
 
@@ -123,6 +116,7 @@ m1, m2, m3, m4 = st.columns(4)
 m1.metric("분석 기간", f"{window}일 이동평균")
 m2.metric("🔴 총 급등 횟수", f"{sub['급등'].sum()}회")
 m3.metric("🔵 총 급락 횟수", f"{sub['급락'].sum()}회")
+
 latest_vol = (sub["STD"].iloc[-1] / sub["MA"].iloc[-1] * 100) if sub["MA"].iloc[-1] != 0 else 0
 m4.metric("변동성(CV)", f"{latest_vol:.1f}%")
 
