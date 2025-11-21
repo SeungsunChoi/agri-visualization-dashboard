@@ -48,7 +48,7 @@ df[PRICE_COL] = pd.to_numeric(df[PRICE_COL], errors="coerce")
 # 🔥 (A) 사이드바: 분석기간 + 탐지민감도 + 품종 + 등급
 # ============================
 with st.sidebar:
-    st.header("분석 기간 설정")
+    st.header("분석 옵션 설정")
 
     min_date = df["가격등록일자"].min().date()
     max_date = df["가격등록일자"].max().date()
