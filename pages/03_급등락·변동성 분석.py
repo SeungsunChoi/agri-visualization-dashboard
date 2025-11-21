@@ -159,29 +159,53 @@ down_p = base.mark_circle(size=60, color="blue").encode(y=PRICE_COL).transform_f
 st.altair_chart((line + ma_line + up_p + down_p).properties(height=400), use_container_width=True)
 
 # ============================
-# 6. 월별 분석 (높이 완전 정렬)
+# 6. 월별 분석
 # ============================
 st.subheader("월별 상세 분석")
 
-colA, colB = st.columns(2, vertical_alignment="top")
+# 🔥 탭을 먼저 정의 (colB 바깥)
+tab1, tab2 = st.tabs(["변동성", "가격 분포"])
 
-# ------------------------------
-# (A) 월별 급등·급락
-# ------------------------------
+# ---- colA + colB 구성 ----
+colA, colB = st.columns(2)
+
+# (A) 월별 급등·급락 빈도
 with colA:
     count_df = sub.groupby("연월").agg(급등횟수=("급등","sum"), 급락횟수=("급락","sum")).reset_index()
-    df_melt = count_df.melt(id_vars="연월", value_vars=["급등횟수","급락횟수"], var_name="구분", value_name="횟수")
-    df_melt["표시"] = df_melt.apply(lambda x: x["횟수"] if x["구분"]=="급등횟수" else -x["횟수"], axis=1)
+    df_melt = count_df.melt(id_vars="연월", value_vars=["급등횟수","급락횟수"], 
+                            var_name="구분", value_name="횟수")
+    df_melt["표시"] = df_melt.apply(
+        lambda x: x["횟수"] if x["구분"]=="급등횟수" else -x["횟수"], axis=1
+    )
 
     chart = alt.Chart(df_melt).mark_bar().encode(
         x="연월:O",
         y="표시:Q",
         color=alt.Color("구분:N",
-            scale=alt.Scale(domain=["급등횟수","급락횟수"], range=["red","blue"])),
+                        scale=alt.Scale(domain=["급등횟수","급락횟수"],
+                                        range=["red","blue"])),
         tooltip=["연월","구분","횟수"]
-    ).properties(height=330)
+    ).properties(height=300)
 
     st.altair_chart(chart, use_container_width=True)
+
+# (B) 선택된 탭에 따라 그래프 표시
+with colB:
+    with tab1:
+        vol_df = sub.groupby("연월")[PRICE_COL].std().reset_index(name="표준편차")
+        vol_chart = alt.Chart(vol_df).mark_bar(color="#004B85").encode(
+            x="연월:O",
+            y="표준편차:Q"
+        ).properties(height=300)
+        st.altair_chart(vol_chart, use_container_width=True)
+
+    with tab2:
+        box_chart = alt.Chart(sub).mark_boxplot(color="#004B85").encode(
+            x="연월:O",
+            y=f"{PRICE_COL}:Q"
+        ).properties(height=300)
+        st.altair_chart(box_chart, use_container_width=True)
+
 
 # ------------------------------
 # (B) 변동성 + Boxplot
