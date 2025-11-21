@@ -143,14 +143,33 @@ with tab1:
 # TAB 2: 시장 분석 (히트맵은 시장 선택과 무관하게 전체 시장 유지)
 # ==========================================
 with tab2:
-    st.markdown("#### 개별 시장 가격 분포")
-    
-    # 도매/소매 라디오 버튼
+    st.markdown("#### 시장별 월별 가격 히트맵 (전체 시장 기준)")
+
+    # 도매/소매 기준 선택
     m_type = st.radio("조사 기준", ["도매", "소매"], horizontal=True, key="t2_radio")
-    
-    # 시장 필터 적용 전 원본 데이터 (히트맵용)
+
+    # 히트맵용 전체 시장 데이터
     sub_m_whole = sub[sub["조사구분명"] == m_type].copy()
+    sub_m_whole["연월"] = sub_m_whole["가격등록일자"].dt.to_period("M").astype(str)
+
+    heat_m = sub_m_whole.groupby(["시장명", "연월"], as_index=False)[PRICE_COL].mean()
+
+    heatmap2 = (
+        alt.Chart(heat_m)
+        .mark_rect()
+        .encode(
+            x=alt.X("연월:O", title=""),
+            y=alt.Y("시장명:N", title=""),
+            color=alt.Color(f"{PRICE_COL}:Q", scale=alt.Scale(scheme="greens")),
+            tooltip=["시장명", "연월", alt.Tooltip(PRICE_COL, format=",")]
+        )
+        .properties(height=350)
+    )
     
+    st.altair_chart(heatmap2, use_container_width=True)
+
+    st.markdown("#### 개별 시장 가격 분포")
+
     # 시장 선택 리스트
     markets = sorted(sub_m_whole["시장명"].unique())
     sel_markets = st.multiselect(
@@ -158,8 +177,8 @@ with tab2:
         markets,
         default=markets[:3] if len(markets) > 2 else markets
     )
-    
-    # 선택된 시장에 대해서만 시계열·박스플롯 생성
+
+    # 선택 시장 데이터
     sub_m = sub_m_whole[sub_m_whole["시장명"].isin(sel_markets)]
     
     if not sub_m.empty:
@@ -197,6 +216,7 @@ with tab2:
     
     else:
         st.info("비교할 시장을 선택해주세요.")
+
     
     # ==========================================
     # 히트맵 (시장 선택과 무관하게 전체 시장 데이터로 고정)
