@@ -20,13 +20,14 @@ st.markdown("""
 [data-testid="stMetricValue"], h1, h2, h3 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
-div[data-testid="stTabs"] button {
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
+div[data-testid="stVerticalBlock"] {
+    padding-top: 0px !important;
 }
 div[data-testid="stTabs"] {
     margin-top: -20px !important;
+    padding-top: 0px !important;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
