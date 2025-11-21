@@ -169,7 +169,7 @@ with colB:
     st.altair_chart(box_chart, use_container_width=True)
 
 # =========================================================
-# 8) 💰 월별 평균 마진 그래프
+# 8) 💰 도·소매 월별 평균 마진 그래프
 # =========================================================
 st.markdown('<div class="section-title">💰 도·소매 월별 평균 마진</div>', unsafe_allow_html=True)
 
@@ -180,35 +180,45 @@ pivot = sub_grouped.pivot(
     values=PRICE_COL,
 )
 
-if {"도매", "소매"}.issubset(pivot.columns):
+has_wholesale = "도매" in pivot.columns
+has_retail = "소매" in pivot.columns
 
-    margin_df = pivot.copy()
-    margin_df["마진"] = margin_df["소매"] - margin_df["도매"]
-    margin_df = margin_df.dropna(subset=["마진"]).reset_index()
+# --------------------------------------
+# ❗ 도매 또는 소매 중 하나라도 없으면 → 마진 그래프 전체 비활성 + 메시지만
+# --------------------------------------
+if not (has_wholesale and has_retail):
+    st.info("ℹ️ 선택한 품종·등급에는 도매·소매 데이터가 모두 존재하지 않아 마진 분석을 표시할 수 없습니다.")
+    st.stop()
 
-    # 연월화
-    margin_df["연월"] = margin_df["가격등록일자"].dt.to_period("M").dt.to_timestamp()
+# --------------------------------------
+# 🔥 도매 + 소매 모두 존재 → 마진 계산
+# --------------------------------------
+margin_df = pivot.copy()
+margin_df["마진"] = margin_df["소매"] - margin_df["도매"]
+margin_df = margin_df.dropna(subset=["마진"]).reset_index()
 
-    month_margin = (
-        margin_df.groupby("연월", as_index=False)["마진"].mean()
+margin_df["연월"] = margin_df["가격등록일자"].dt.to_period("M").dt.to_timestamp()
+
+month_margin = (
+    margin_df.groupby("연월", as_index=False)["마진"].mean()
+)
+
+margin_bar = (
+    alt.Chart(month_margin)
+    .mark_bar()
+    .encode(
+        x=alt.X("연월:T", axis=alt.Axis(format="%Y-%m"), title="연월"),
+        y=alt.Y("마진:Q", title="평균 마진(원/kg)"),
+        tooltip=[
+            alt.Tooltip("연월:T", title="연월"),
+            alt.Tooltip("마진:Q", title="평균 마진(원/kg)", format=",.0f")
+        ],
     )
+    .properties(height=360)
+)
+st.altair_chart(margin_bar, use_container_width=True)
 
-    margin_bar = (
-        alt.Chart(month_margin)
-        .mark_bar()
-        .encode(
-            x=alt.X("연월:T", axis=alt.Axis(format="%Y-%m"), title="연월"),
-            y=alt.Y("마진:Q", title="평균 마진(원/kg)"),
-            tooltip=[
-                alt.Tooltip("연월:T", title="연월"),
-                alt.Tooltip("마진:Q", title="평균 마진(원/kg)", format=",.0f")
-            ],
-        )
-        .properties(height=360)
-    )
-    st.altair_chart(margin_bar, use_container_width=True)
-
-    # 평균 값 계산
+# 평균 값
 avg_margin = month_margin["마진"].mean()
 avg_wholesale = margin_df["도매"].mean()
 avg_retail = margin_df["소매"].mean()
@@ -226,6 +236,7 @@ with c2:
 
 with c3:
     st.markdown(f"✔ 평균 소매가격: **{avg_retail:,.0f}원/kg**")
+
 
 
 
