@@ -211,7 +211,7 @@ with tab2:
         with c2:
             m_box = (
                 alt.Chart(sub_m)
-                .mark_boxplot()
+                .mark_boxplot(size=50)
                 .encode(
                     x=alt.X("시장명:N", title=""),
                     y=alt.Y(f"{PRICE_COL}:Q", title="가격"),
